@@ -19,30 +19,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 package cmd
 
-import "testing"
+import (
+	"os"
+)
 
-func Test_isFileValid(t *testing.T) {
-	type args struct {
-		fileName string
+// Validates that the input file is a real file (and not a directory)
+func isFileValid(fileName string) bool {
+	info, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return false
 	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			"Happy case", 
-			args{"README.md"},
-			true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := isFileValid(tt.args.fileName); (err != nil) != tt.wantErr {
-				t.Errorf("isFileValid() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
+	return !info.IsDir()
 }
