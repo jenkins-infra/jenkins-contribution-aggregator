@@ -22,13 +22,16 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"encoding/csv"
 	"fmt"
+	"io"
+	"log"
 
 	"github.com/spf13/cobra"
 )
 
 var isVerboseCheck bool
-var verboseInputFileName string
+// var verboseInputFileName string
 
 // checkCmd represents the check command
 var checkCmd = &cobra.Command{
@@ -49,6 +52,8 @@ var checkCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		fmt.Println("checking", args[0], " with isVerboseCheck =", isVerboseCheck)
+
+		//checkfile
 	},
 }
 
@@ -56,4 +61,20 @@ func init() {
 	rootCmd.AddCommand(checkCmd)
 
 	checkCmd.PersistentFlags().BoolVar(&isVerboseCheck, "verbose", false, "Displays useful info about the checked file")
+}
+
+//Loads the data and try to parse it as a CSV
+func checkFile(inputReader io.Reader) bool{
+
+	r := csv.NewReader(inputReader)
+
+	records, err := r.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(records)
+
+	return true
+
 }
