@@ -53,7 +53,10 @@ var checkCmd = &cobra.Command{
 
 		fmt.Println("checking", args[0], " with isVerboseCheck =", isVerboseCheck)
 
-		//checkfile
+		if(!checkFile(args[0])){
+			fmt.Print("Check failed.")
+			os.Exit(1)
+		}
 	},
 }
 
@@ -75,13 +78,22 @@ func checkFile(fileName string) bool{
 
 	r := csv.NewReader(f)
 
+	//The first record is not properly formatted, we skip it
+	firstLine, err1 := r.Read()
+	if err1 != nil {
+		log.Printf("Unexpected error loading" + fileName + "\n", err)
+		return false
+	}
+	fmt.Printf("Number of fields in first line: %d\n", len(firstLine))
+
 	records, err := r.ReadAll()
 	if err != nil {
 		log.Printf("Unexpected error loading" + fileName + "\n", err)
 		return false
 	}
 
-	fmt.Println(records)
+	fmt.Printf("number of records: %d\n", len(records))
+	// fmt.Println(records)
 
 	return true
 

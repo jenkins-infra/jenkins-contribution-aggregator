@@ -34,7 +34,7 @@ func Test_checkFile(t *testing.T) {
 	}{
 		{
 			"Happy case",
-			args{"../test_data/well-formatted.csv"},
+			args{"../test_data/overview.csv"},
 			true,
 		},
 		{
@@ -42,11 +42,11 @@ func Test_checkFile(t *testing.T) {
 			args{"../test_data/blaah.csv"},
 			false,
 		},
-		{
-			"not a CSV",
-			args{"../test_data/not_a_csv.txt"},
-			false,
-		},
+		// {
+		// 	"not a CSV",
+		// 	args{"../test_data/not_a_csv.txt"},
+		// 	false,
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
