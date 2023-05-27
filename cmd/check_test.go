@@ -21,24 +21,11 @@ THE SOFTWARE.
 */
 package cmd
 
-import (
-	"io"
-	"strings"
-	"testing"
-)
-
-
+import "testing"
 
 func Test_checkFile(t *testing.T) {
-	in := `first_name,last_name,username
-"Rob","Pike",rob
-Ken,Thompson,ken
-"Robert","Griesemer","gri"
-`
-
-
 	type args struct {
-		r io.Reader
+		fileName string
 	}
 	tests := []struct {
 		name string
@@ -46,14 +33,24 @@ Ken,Thompson,ken
 		want bool
 	}{
 		{
-			"test 1",
-			args{strings.NewReader(in)},
+			"Happy case",
+			args{"../test_data/well-formatted.csv"},
 			true,
+		},
+		{
+			"file not found",
+			args{"../test_data/blaah.csv"},
+			false,
+		},
+		{
+			"not a CSV",
+			args{"../test_data/not_a_csv.txt"},
+			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := checkFile(tt.args.r); got != tt.want {
+			if got := checkFile(tt.args.fileName); got != tt.want {
 				t.Errorf("checkFile() = %v, want %v", got, tt.want)
 			}
 		})

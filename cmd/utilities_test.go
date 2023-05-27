@@ -36,7 +36,7 @@ func Test_isFileValid(t *testing.T) {
 	}{
 		{
 			"Happy case",
-			args{"../test_data/sampleFile.txt"},
+			args{"../test_data/not_a_csv.txt"},
 			true,
 		},
 		{

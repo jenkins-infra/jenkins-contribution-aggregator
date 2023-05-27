@@ -24,8 +24,8 @@ package cmd
 import (
 	"encoding/csv"
 	"fmt"
-	"io"
 	"log"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -63,17 +63,25 @@ func init() {
 	checkCmd.PersistentFlags().BoolVar(&isVerboseCheck, "verbose", false, "Displays useful info about the checked file")
 }
 
-//Loads the data and try to parse it as a CSV
-func checkFile(inputReader io.Reader) bool{
+//Loads the data from a file and try to parse it as a CSV
+func checkFile(fileName string) bool{
 
-	r := csv.NewReader(inputReader)
+    f, err := os.Open(fileName)
+    if err != nil {
+        log.Printf("Unable to read input file " + fileName + "\n", err)
+		return false
+    }
+    defer f.Close()
+
+	r := csv.NewReader(f)
 
 	records, err := r.ReadAll()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Unexpected error loading" + fileName + "\n", err)
+		return false
 	}
 
-	fmt.Print(records)
+	fmt.Println(records)
 
 	return true
 
