@@ -87,25 +87,34 @@ func checkFile(fileName string) bool{
 		log.Printf("Unexpected error loading" + fileName + "\n", err)
 		return false
 	}
-	nbrOfColumns := len(firstLine)
-	fmt.Printf("Number of fields in first line: %d\n", nbrOfColumns )
+
+	if isVerboseCheck {
+		nbrOfColumns := len(firstLine)
+		fmt.Println("Checking file format")
+		fmt.Printf("- Number of fields in first line: %d\n", nbrOfColumns )
+	}
 
 	// first column should be empty
 	if firstLine[0] != "" {
 		fmt.Println("Not the expected first column name (should be empty)")
 		return false
 	}
+	if isVerboseCheck {
+		fmt.Println("- file's header start with empty column name.")
+	}
 
 	//loop through columns to check headings
 	month_regexp, _ := regexp.Compile("20[0-9]{2}-[0-9]{2}")
 	for i, s := range firstLine {
 		if i != 0 {
-			found := month_regexp.MatchString(s)
-			if !found {
+			if !month_regexp.MatchString(s) {
 				fmt.Printf("Column header %s is not of the expected format (YYYY-MM)\n", s)
 				return false
 			}
 		}
+	}
+	if isVerboseCheck {
+		fmt.Println("- file's header data column of format \"20YY-MM\"")
 	}
 
 	records, err := r.ReadAll()
@@ -114,9 +123,23 @@ func checkFile(fileName string) bool{
 		return false
 	}
 
+	//Check the loaded data
+	name_exp, _ := regexp.Compile(`\w+`)
+	for i, dataLine := range records {
+		for ii, column := range dataLine {
+			if ii == 0 {
+				if !name_exp.MatchString(column) {
+					fmt.Printf("Submitter data \"%s\" at line %d is of incorrect format)\n",column,ii)
+					return false					
+				}
+			}
+		}
+		if isVerboseCheck {
+			fmt.Println(i)
+		}		
+	}
 
 	fmt.Printf("number of records: %d\n", len(records))
-	// fmt.Println(records)
 
 	return isValidTable
 }

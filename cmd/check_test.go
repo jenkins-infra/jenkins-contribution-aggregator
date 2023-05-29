@@ -48,6 +48,11 @@ func Test_checkFile(t *testing.T) {
 			false,
 		},
 		{
+			"Bad submitter name",
+			args{"../test_data/bad_submitter_name.csv"},
+			false,
+		},
+		{
 			"file not found",
 			args{"../test_data/blaah.csv"},
 			false,
