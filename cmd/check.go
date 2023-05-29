@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 
 	"github.com/spf13/cobra"
 )
@@ -69,6 +70,8 @@ func init() {
 //Loads the data from a file and try to parse it as a CSV
 func checkFile(fileName string) bool{
 
+	var isValidTable = true
+
     f, err := os.Open(fileName)
     if err != nil {
         log.Printf("Unable to read input file " + fileName + "\n", err)
@@ -84,7 +87,26 @@ func checkFile(fileName string) bool{
 		log.Printf("Unexpected error loading" + fileName + "\n", err)
 		return false
 	}
-	fmt.Printf("Number of fields in first line: %d\n", len(firstLine))
+	nbrOfColumns := len(firstLine)
+	fmt.Printf("Number of fields in first line: %d\n", nbrOfColumns )
+
+	// first column should be empty
+	if firstLine[0] != "" {
+		fmt.Println("Not the expected first column name (should be empty)")
+		return false
+	}
+
+	//loop through columns to check headings
+	month_regexp, _ := regexp.Compile("20[0-9]{2}-[0-9]{2}")
+	for i, s := range firstLine {
+		if i != 0 {
+			found := month_regexp.MatchString(s)
+			if !found {
+				fmt.Printf("Column header %s is not of the expected format (YYYY-MM)\n", s)
+				return false
+			}
+		}
+	}
 
 	records, err := r.ReadAll()
 	if err != nil {
@@ -92,9 +114,9 @@ func checkFile(fileName string) bool{
 		return false
 	}
 
+
 	fmt.Printf("number of records: %d\n", len(records))
 	// fmt.Println(records)
 
-	return true
-
+	return isValidTable
 }

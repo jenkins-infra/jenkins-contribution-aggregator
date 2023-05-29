@@ -38,15 +38,20 @@ func Test_checkFile(t *testing.T) {
 			true,
 		},
 		{
+			"Bad first column",
+			args{"../test_data/bad_first_column.csv"},
+			false,
+		},
+		{
+			"Bad date column",
+			args{"../test_data/bad_date_column.csv"},
+			false,
+		},
+		{
 			"file not found",
 			args{"../test_data/blaah.csv"},
 			false,
 		},
-		// {
-		// 	"not a CSV",
-		// 	args{"../test_data/not_a_csv.txt"},
-		// 	false,
-		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
