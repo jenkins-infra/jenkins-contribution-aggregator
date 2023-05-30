@@ -123,13 +123,22 @@ func checkFile(fileName string) bool{
 		return false
 	}
 
-	//Check the loaded data
-	name_exp, _ := regexp.Compile(`\w+`)
+//The GitHub user validation regexp (see https://stackoverflow.com/questions/58726546/github-username-convention-using-regex)
+// should be regexp.Compile(`^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$`). But the dataset contains "invalid" data: username ending with a "-" or
+// a double "-" in the name. 
+	name_exp, _ := regexp.Compile(`^[a-zA-Z0-9\-]+$`)
+
+		//Check the loaded data
 	for i, dataLine := range records {
+		//Skip header line as it has already been checked
+		if i == 0 {
+			continue
+		}
 		for ii, column := range dataLine {
+			//check the GitHub user (first columns)
 			if ii == 0 {
-				if !name_exp.MatchString(column) {
-					fmt.Printf("Submitter data \"%s\" at line %d is of incorrect format)\n",column,ii)
+				if !(len(column) < 40 && len(column) > 0 && name_exp.MatchString(column)) {
+					fmt.Printf("Submitter \"%s\" at line %d does not follow GitHub rules\n",column,i)
 					return false					
 				}
 			}
