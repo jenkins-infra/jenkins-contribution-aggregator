@@ -30,9 +30,9 @@ var records_1 = [][]string{
 }
 
 var records_2 = [][]string{
-	{"", "2022-01"},
-	{"0x41head", "1"},
-	{"AScripnic", "1"},
+	{"", "2022-01", "2022-02"},
+	{"0x41head", "1", "2"},
+	{"AScripnic", "1", "2"},
 }
 
 func Test_getBoundaries(t *testing.T) {
@@ -63,6 +63,11 @@ func Test_getBoundaries(t *testing.T) {
 			"Get more months than available",
 			args{records: records_1, months: 20},
 			1, 16, "2022-01", "2023-04",
+		},		
+		{
+			"short month set",
+			args{records: records_2, months: 12},
+			1, 2, "2022-01", "2022-02",
 		},		
 	}
 	for _, tt := range tests {

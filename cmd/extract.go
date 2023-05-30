@@ -34,7 +34,6 @@ import (
 var outputFileName string
 var topSize int
 var months int
-var isVerboseExtract bool
 
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
@@ -106,11 +105,12 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 
 	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, months)
 
-	fmt.Printf("Accumulating data between %s and  %s (between columns %d and %d)\n", oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
+	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n", oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
 
 	return true
 }
 
+// Based on the number of months requested, computes the start/end column and associated date for the given dataset
 func getBoundaries(records [][]string, months int) (startColumn int, endColumn int, startMonth string, endMonth string) {
 	nbrOfColumns := len(records[0])
 	endColumn = nbrOfColumns - 1

@@ -73,7 +73,7 @@ func init() {
 func checkFile(fileName string, isSilent bool) bool {
 
 	//TODO: retrieve and display the latest data (last column)
-	//TODO: file should have at least one column
+	//TODO: file should have at least two column
 	//TODO: file should have at least one data row
 
 	var isValidTable = true
