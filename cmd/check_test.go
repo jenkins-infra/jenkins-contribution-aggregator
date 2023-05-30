@@ -33,11 +33,6 @@ func Test_checkFile(t *testing.T) {
 		want bool
 	}{
 		{
-			"Happy case",
-			args{"../test_data/overview.csv"},
-			true,
-		},
-		{
 			"Bad first column",
 			args{"../test_data/bad_first_column.csv"},
 			false,
@@ -53,9 +48,19 @@ func Test_checkFile(t *testing.T) {
 			false,
 		},
 		{
+			"Bad submitter name",
+			args{"../test_data/bad_data_value.csv"},
+			false,
+		},
+		{
 			"file not found",
 			args{"../test_data/blaah.csv"},
 			false,
+		},
+		{
+			"Happy case",
+			args{"../test_data/overview.csv"},
+			true,
 		},
 	}
 	for _, tt := range tests {

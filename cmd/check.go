@@ -27,11 +27,13 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
 var isVerboseCheck bool
+
 // var verboseInputFileName string
 
 // checkCmd represents the check command
@@ -54,7 +56,7 @@ var checkCmd = &cobra.Command{
 
 		fmt.Println("checking", args[0], " with isVerboseCheck =", isVerboseCheck)
 
-		if(!checkFile(args[0])){
+		if !checkFile(args[0]) {
 			fmt.Print("Check failed.")
 			os.Exit(1)
 		}
@@ -67,31 +69,31 @@ func init() {
 	checkCmd.PersistentFlags().BoolVar(&isVerboseCheck, "verbose", false, "Displays useful info about the checked file")
 }
 
-//Loads the data from a file and try to parse it as a CSV
-func checkFile(fileName string) bool{
+// Loads the data from a file and try to parse it as a CSV
+func checkFile(fileName string) bool {
 
 	var isValidTable = true
 
-    f, err := os.Open(fileName)
-    if err != nil {
-        log.Printf("Unable to read input file " + fileName + "\n", err)
+	f, err := os.Open(fileName)
+	if err != nil {
+		log.Printf("Unable to read input file "+fileName+"\n", err)
 		return false
-    }
-    defer f.Close()
+	}
+	defer f.Close()
 
 	r := csv.NewReader(f)
 
 	//The first record is not properly formatted, we skip it
 	firstLine, err1 := r.Read()
 	if err1 != nil {
-		log.Printf("Unexpected error loading" + fileName + "\n", err)
+		log.Printf("Unexpected error loading"+fileName+"\n", err)
 		return false
 	}
 
 	if isVerboseCheck {
 		nbrOfColumns := len(firstLine)
 		fmt.Println("Checking file format")
-		fmt.Printf("- Number of fields in first line: %d\n", nbrOfColumns )
+		fmt.Printf("  - Number of columns defined in header: %d\n", nbrOfColumns)
 	}
 
 	// first column should be empty
@@ -100,7 +102,7 @@ func checkFile(fileName string) bool{
 		return false
 	}
 	if isVerboseCheck {
-		fmt.Println("- file's header start with empty column name.")
+		fmt.Println("  - File's header start with empty column name.")
 	}
 
 	//loop through columns to check headings
@@ -114,21 +116,21 @@ func checkFile(fileName string) bool{
 		}
 	}
 	if isVerboseCheck {
-		fmt.Println("- file's header data column of format \"20YY-MM\"")
+		fmt.Println("  - File's header data column format (\"20YY-MM\")")
 	}
 
 	records, err := r.ReadAll()
 	if err != nil {
-		log.Printf("Unexpected error loading" + fileName + "\n", err)
+		log.Printf("Unexpected error loading"+fileName+"\n", err)
 		return false
 	}
 
-//The GitHub user validation regexp (see https://stackoverflow.com/questions/58726546/github-username-convention-using-regex)
-// should be regexp.Compile(`^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$`). But the dataset contains "invalid" data: username ending with a "-" or
-// a double "-" in the name. 
+	//The GitHub user validation regexp (see https://stackoverflow.com/questions/58726546/github-username-convention-using-regex)
+	// should be regexp.Compile(`^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$`). But the dataset contains "invalid" data: username ending with a "-" or
+	// a double "-" in the name.
 	name_exp, _ := regexp.Compile(`^[a-zA-Z0-9\-]+$`)
 
-		//Check the loaded data
+	//Check the loaded data
 	for i, dataLine := range records {
 		//Skip header line as it has already been checked
 		if i == 0 {
@@ -138,17 +140,25 @@ func checkFile(fileName string) bool{
 			//check the GitHub user (first columns)
 			if ii == 0 {
 				if !(len(column) < 40 && len(column) > 0 && name_exp.MatchString(column)) {
-					fmt.Printf("Submitter \"%s\" at line %d does not follow GitHub rules\n",column,i)
-					return false					
+					fmt.Printf("Submitter \"%s\" at line %d does not follow GitHub rules\n", column, i)
+					return false
+				}
+			} else {
+				// check the other columns is an integer (we don't check the sign)
+				if _, err := strconv.Atoi(column); err != nil {
+					fmt.Printf("Value \"%s\" at line %d (column %d) isn't an integer\n", column, i, ii)
+					return false
 				}
 			}
 		}
-		if isVerboseCheck {
-			fmt.Println(i)
-		}		
 	}
 
-	fmt.Printf("number of records: %d\n", len(records))
+	if isVerboseCheck {
+		fmt.Println("  - Number of data columns match header columns.")
+		fmt.Printf("  - Records have a valid GitHub username and number of submitted PRs. (%d data records)\n", len(records)-1)
+	}
+
+	fmt.Printf("\nSuccessfully checked \"%s\"\n   It is a valid Jenkins Submitter Pivot Table and can be processes\n\n", fileName)
 
 	return isValidTable
 }
