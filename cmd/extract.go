@@ -55,3 +55,7 @@ func init() {
 	// is called directly, e.g.:
 	// extractCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
+
+func extractData(fileName string) bool {
+	return true
+}
