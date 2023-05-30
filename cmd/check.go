@@ -52,7 +52,8 @@ var checkCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// When called standalone, we want to give the minimal information
+		isVerboseCheck = isVerbose
+		// When called standalone, we want to give at least some information
 		isSilent := false
 		if !checkFile(args[0], isSilent) {
 			fmt.Print("Check failed.")
@@ -61,16 +62,24 @@ var checkCmd = &cobra.Command{
 	},
 }
 
+// initialize the Cobra processor and flags
 func init() {
 	rootCmd.AddCommand(checkCmd)
 
-	checkCmd.PersistentFlags().BoolVar(&isVerboseCheck, "verbose", false, "Displays useful info about the checked file")
+	// checkCmd.PersistentFlags().BoolVar(&isVerboseCheck, "verbose", false, "Displays useful info about the checked file")
 }
 
 // Loads the data from a file and try to parse it as a CSV
 func checkFile(fileName string, isSilent bool) bool {
 
+	//TODO: retrieve and display the latest data (last column)
+	//TODO: file should have at least one column
+	//TODO: file should have at least one data row
+
 	var isValidTable = true
+	if isSilent {
+		isVerboseCheck = false
+	}
 
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -156,7 +165,9 @@ func checkFile(fileName string, isSilent bool) bool {
 		fmt.Printf("  - Records have a valid GitHub username and number of submitted PRs. (%d data records)\n", len(records)-1)
 	}
 
-	fmt.Printf("\nSuccessfully checked \"%s\"\n   It is a valid Jenkins Submitter Pivot Table and can be processes\n\n", fileName)
+	if !isSilent {
+		fmt.Printf("\nSuccessfully checked \"%s\"\n   It is a valid Jenkins Submitter Pivot Table and can be processes\n\n", fileName)
+	}
 
 	return isValidTable
 }
