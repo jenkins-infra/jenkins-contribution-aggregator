@@ -26,6 +26,7 @@ import "testing"
 func Test_checkFile(t *testing.T) {
 	type args struct {
 		fileName string
+		isSilent bool
 	}
 	tests := []struct {
 		name string
@@ -34,38 +35,56 @@ func Test_checkFile(t *testing.T) {
 	}{
 		{
 			"Bad first column",
-			args{"../test_data/bad_first_column.csv"},
+			args{
+				fileName: "../test_data/bad_first_column.csv",
+				isSilent: false,
+			},
 			false,
 		},
 		{
 			"Bad date column",
-			args{"../test_data/bad_date_column.csv"},
+			args{
+				fileName: "../test_data/bad_date_column.csv",
+				isSilent: false,
+			},
 			false,
 		},
 		{
 			"Bad submitter name",
-			args{"../test_data/bad_submitter_name.csv"},
+			args{
+				fileName: "../test_data/bad_submitter_name.csv",
+				isSilent: false,
+			},
 			false,
 		},
 		{
 			"Bad submitter name",
-			args{"../test_data/bad_data_value.csv"},
+			args{
+				fileName: "../test_data/bad_data_value.csv",
+				isSilent: false,
+			},
 			false,
 		},
 		{
 			"file not found",
-			args{"../test_data/blaah.csv"},
+			args{
+				fileName: "../test_data/blaah.csv",
+				isSilent: false,
+			},
 			false,
 		},
 		{
 			"Happy case",
-			args{"../test_data/overview.csv"},
+			args{
+				fileName: "../test_data/overview.csv",
+				isSilent: false,
+			},
 			true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := checkFile(tt.args.fileName); got != tt.want {
+			if got := checkFile(tt.args.fileName, tt.args.isSilent); got != tt.want {
 				t.Errorf("checkFile() = %v, want %v", got, tt.want)
 			}
 		})

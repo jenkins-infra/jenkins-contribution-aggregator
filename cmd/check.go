@@ -52,9 +52,9 @@ var checkCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fmt.Println("checking", args[0], " with isVerboseCheck =", isVerboseCheck)
-
-		if !checkFile(args[0]) {
+		// When called standalone, we want to give the minimal information
+		isSilent := false
+		if !checkFile(args[0], isSilent) {
 			fmt.Print("Check failed.")
 			os.Exit(1)
 		}
@@ -68,7 +68,7 @@ func init() {
 }
 
 // Loads the data from a file and try to parse it as a CSV
-func checkFile(fileName string) bool {
+func checkFile(fileName string, isSilent bool) bool {
 
 	var isValidTable = true
 
