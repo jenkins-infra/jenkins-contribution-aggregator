@@ -65,16 +65,10 @@ var checkCmd = &cobra.Command{
 // initialize the Cobra processor and flags
 func init() {
 	rootCmd.AddCommand(checkCmd)
-
-	// checkCmd.PersistentFlags().BoolVar(&isVerboseCheck, "verbose", false, "Displays useful info about the checked file")
 }
 
 // Loads the data from a file and try to parse it as a CSV
 func checkFile(fileName string, isSilent bool) bool {
-
-	//TODO: retrieve and display the latest data (last column)
-	//TODO: file should have at least two column
-	//TODO: file should have at least one data row
 
 	var isValidTable = true
 	if isSilent {
@@ -98,9 +92,8 @@ func checkFile(fileName string, isSilent bool) bool {
 	}
 
 	if isVerboseCheck {
-		nbrOfColumns := len(firstLine)
 		fmt.Println("Checking file format")
-		fmt.Printf("  - Number of columns defined in header: %d\n", nbrOfColumns)
+		fmt.Printf("  - Number of columns defined in header: %d\n", len(firstLine))
 	}
 
 	// first column should be empty
@@ -123,13 +116,31 @@ func checkFile(fileName string, isSilent bool) bool {
 		}
 	}
 	if isVerboseCheck {
-		fmt.Println("  - File's header data column format (\"20YY-MM\")")
+		endMonth := firstLine[len(firstLine)-1]
+		fmt.Printf("  - File's header data column format (\"20YY-MM\"). Most recent data is \"%s\"\n", endMonth)
+	}
+
+	nbrOfColumns := len(firstLine)
+	if nbrOfColumns < 3 {
+		fmt.Printf("Not enough monthly data available\n")
+		return false
+	}
+	if isVerboseCheck {
+		fmt.Printf("  - More than one month data available\n")
 	}
 
 	records, err := r.ReadAll()
 	if err != nil {
 		log.Printf("Unexpected error loading"+fileName+"\n", err)
 		return false
+	}
+
+	if len(records) < 2 {
+		fmt.Printf("No data available after the header\n")
+		return false
+	}
+	if isVerboseCheck {
+		fmt.Println("  - At least one submitter's data available")
 	}
 
 	//The GitHub user validation regexp (see https://stackoverflow.com/questions/58726546/github-username-convention-using-regex)

@@ -115,7 +115,7 @@ func getBoundaries(records [][]string, months int) (startColumn int, endColumn i
 	nbrOfColumns := len(records[0])
 	endColumn = nbrOfColumns - 1
 
-	if (months >= nbrOfColumns) {
+	if months >= nbrOfColumns {
 		months = 0
 	}
 

@@ -63,12 +63,12 @@ func Test_getBoundaries(t *testing.T) {
 			"Get more months than available",
 			args{records: records_1, months: 20},
 			1, 16, "2022-01", "2023-04",
-		},		
+		},
 		{
 			"short month set",
 			args{records: records_2, months: 12},
 			1, 2, "2022-01", "2022-02",
-		},		
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
