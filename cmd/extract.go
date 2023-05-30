@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -103,9 +104,31 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 		return false
 	}
 
+	//TODO: handle and open the output file
+
 	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, months)
 
-	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n", oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
+	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
+		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
+
+	for i, dataLine := range records {
+		//Skip header line as it has already been checked
+		if i == 0 {
+			continue
+		}
+		fmt.Printf("%s", dataLine[0])
+		recordTotal := 0
+		for ii, column := range dataLine {
+			if ii >= firstDataColumn && ii <= lastDataColumn {
+				fmt.Printf(", %s", column)
+				// We don't treat conversion errors as the file has already been checked
+				columnValue, _ := strconv.Atoi(column)
+				//FIXME: check if value is negative
+				recordTotal = recordTotal + columnValue
+			}
+		}
+		fmt.Printf("  total: %d\n", recordTotal)
+	}
 
 	return true
 }
