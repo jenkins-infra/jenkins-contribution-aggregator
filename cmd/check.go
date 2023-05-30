@@ -34,8 +34,6 @@ import (
 
 var isVerboseCheck bool
 
-// var verboseInputFileName string
-
 // checkCmd represents the check command
 var checkCmd = &cobra.Command{
 	Use:   "check [input file]",
