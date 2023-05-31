@@ -22,3 +22,6 @@ go.work
 
 #vscode settings
 .vscode/
+
+#default test file
+top-submitters.csv
