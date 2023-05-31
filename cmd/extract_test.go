@@ -21,7 +21,9 @@ THE SOFTWARE.
 */
 package cmd
 
-import "testing"
+import (
+	"testing"
+)
 
 var records_1 = [][]string{
 	{"", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04"},
@@ -88,3 +90,40 @@ func Test_getBoundaries(t *testing.T) {
 		})
 	}
 }
+
+
+func Test_extractData(t *testing.T) {
+	type args struct {
+		inputFilename    string
+		outputFilename   string
+		topSize          int
+		months           int
+		isVerboseExtract bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"Happy case",
+			args{
+				inputFilename: "../test_data/short_overview.csv",
+				outputFilename: "",
+				topSize: 7,
+				months: 12,
+				isVerboseExtract: false,
+			},
+			false,
+		},
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractData(tt.args.inputFilename, tt.args.outputFilename, tt.args.topSize, tt.args.months, tt.args.isVerboseExtract); got != tt.want {
+				t.Errorf("extractData() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+

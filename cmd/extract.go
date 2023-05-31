@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -36,6 +37,11 @@ var outputFileName string
 var topSize int
 var months int
 
+type totalized_record struct {
+	User string //Submitter name
+	Pr   int    //Number of PRs
+}
+
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
 	Use:   "extract [input file]",
@@ -43,9 +49,14 @@ var extractCmd = &cobra.Command{
 	Long: `This command extract the top submitter for a given period (by default 12 months).
 The input file is first validated before being processed.
 If not specified, the output file name is hardcoded to "top-submitters.csv". 
+
 The "months" parameter is the number of months used to compute the top users, 
-counting from backwards from the last day.
-The "topSize" parameter defines the number of users considered as top users. 
+counting from backwards from the last month. If a 0 months is specified, all the 
+available is counted.
+
+The "topSize" parameter defines the number of users considered as top users.
+If more submitters with the same amount of total PRs exist ("ex aequo"), they are included in 
+the list (resulting in more thant the specified number of top users).  
 `,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.MinimumNArgs(1)(cmd, args); err != nil {
@@ -75,13 +86,17 @@ The "topSize" parameter defines the number of users considered as top users.
 func init() {
 	rootCmd.AddCommand(extractCmd)
 
-	// Here you will define your flags and configuration settings.
+	//FIXME: change to allow shortcut flags
+
+	// definition of flags and configuration settings.
 	extractCmd.PersistentFlags().StringVar(&outputFileName, "out", "top-submitters.csv", "Output file name")
 	extractCmd.PersistentFlags().IntVar(&topSize, "topSize", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVar(&months, "months", 12, "Accumulated number of months.")
 
 	// checkCmd.PersistentFlags().BoolVar(&isVerboseExtract, "verboseExtract", false, "Displays useful info during the extraction")
 }
+
+
 
 // Extracts the top submitters for a given period and writes it to a file
 func extractData(inputFilename string, outputFilename string, topSize int, months int, isVerboseExtract bool) bool {
@@ -111,24 +126,68 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
 
+	//Slice that will contain all the totalized records	
+	var new_output_slice []totalized_record
+
 	for i, dataLine := range records {
+
 		//Skip header line as it has already been checked
 		if i == 0 {
 			continue
 		}
-		fmt.Printf("%s", dataLine[0])
+
 		recordTotal := 0
 		for ii, column := range dataLine {
 			if ii >= firstDataColumn && ii <= lastDataColumn {
-				fmt.Printf(", %s", column)
-				// We don't treat conversion errors as the file has already been checked
+				// fmt.Printf(", %s", column)
+
+				// We don't treat conversion errors or negative values as the file has already been checked
 				columnValue, _ := strconv.Atoi(column)
-				//FIXME: check if value is negative
 				recordTotal = recordTotal + columnValue
 			}
 		}
-		fmt.Printf("  total: %d\n", recordTotal)
+
+		//Add the total to the full list
+		a_totalized_record := totalized_record{dataLine[0], recordTotal}
+		new_output_slice = append(new_output_slice, a_totalized_record)
 	}
+
+	// Sort the slice, based on the number of PRs, in descending order
+	sort.Slice(new_output_slice, func(i, j int) bool { return new_output_slice[i].Pr > new_output_slice[j].Pr })
+
+
+	//Loop through list to find the top submitters (and ex-aequo) to load the final list
+	current_total := 0
+	isListComplete := false
+	
+	var csv_output_slice [][]string
+	header_row := []string {"Submitter", "Total_PRs"}
+	csv_output_slice = append(csv_output_slice, header_row)
+	for i, total_record := range new_output_slice {
+		if i < topSize {
+			current_total = total_record.Pr
+
+			var work_row []string
+			work_row = append(work_row, total_record.User, strconv.Itoa(total_record.Pr))
+			csv_output_slice = append(csv_output_slice, work_row)
+			// fmt.Printf(" %20s %3d\n",total_record.User,total_record.Pr)
+		} else {
+			if !isListComplete {
+				if current_total == total_record.Pr {
+					//This is an ex-aequo, so add it to the list
+					var work_row []string
+					work_row = append(work_row, total_record.User, strconv.Itoa(total_record.Pr))
+					csv_output_slice = append(csv_output_slice, work_row)
+					// fmt.Printf(" %20s %3d\n",total_record.User,total_record.Pr)
+				} else {
+					// we have all we need
+					isListComplete = true
+				}
+			}
+		}
+	}
+
+	fmt.Println(csv_output_slice)
 
 	return true
 }
