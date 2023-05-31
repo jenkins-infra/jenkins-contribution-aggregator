@@ -117,8 +117,6 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 		return false
 	}
 
-	//TODO: handle and open the output file
-
 	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, months)
 
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
@@ -168,7 +166,6 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 			var work_row []string
 			work_row = append(work_row, total_record.User, strconv.Itoa(total_record.Pr))
 			csv_output_slice = append(csv_output_slice, work_row)
-			// fmt.Printf(" %20s %3d\n",total_record.User,total_record.Pr)
 		} else {
 			if !isListComplete {
 				if current_total == total_record.Pr {
@@ -176,7 +173,6 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 					var work_row []string
 					work_row = append(work_row, total_record.User, strconv.Itoa(total_record.Pr))
 					csv_output_slice = append(csv_output_slice, work_row)
-					// fmt.Printf(" %20s %3d\n",total_record.User,total_record.Pr)
 				} else {
 					// we have all we need
 					isListComplete = true
@@ -185,7 +181,20 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 		}
 	}
 
-	fmt.Println(csv_output_slice)
+	//Open output file
+	out, err := os.Create(outputFilename)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer out.Close()
+
+	//Write the collected data as a CSV file
+	csv_out := csv.NewWriter(out)
+	write_err := csv_out.WriteAll(csv_output_slice)
+    if write_err != nil {
+        log.Fatal(err)
+    }
+	csv_out.Flush()
 
 	return true
 }
