@@ -163,9 +163,14 @@ func checkFile(fileName string, isSilent bool) bool {
 				}
 			} else {
 				// check the other columns is an integer (we don't check the sign)
-				if _, err := strconv.Atoi(column); err != nil {
+				if data_value, err := strconv.Atoi(column); err != nil {
 					fmt.Printf("Value \"%s\" at line %d (column %d) isn't an integer\n", column, i, ii)
 					return false
+				} else {
+					if data_value < 0 {
+						fmt.Printf("Value \"%s\" at line %d (column %d) is negative\n", column, i, ii)
+						return false
+					}
 				}
 			}
 		}

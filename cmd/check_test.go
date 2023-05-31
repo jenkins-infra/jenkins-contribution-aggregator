@@ -58,9 +58,17 @@ func Test_checkFile(t *testing.T) {
 			false,
 		},
 		{
-			"Bad submitter name",
+			"non integer data value",
 			args{
 				fileName: "../test_data/bad_data_value.csv",
+				isSilent: false,
+			},
+			false,
+		},
+		{
+			"negative data value",
+			args{
+				fileName: "../test_data/bad_data_negative_value.csv",
 				isSilent: false,
 			},
 			false,
