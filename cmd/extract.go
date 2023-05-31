@@ -86,12 +86,10 @@ the list (resulting in more thant the specified number of top users).
 func init() {
 	rootCmd.AddCommand(extractCmd)
 
-	//FIXME: change to allow shortcut flags
-
 	// definition of flags and configuration settings.
-	extractCmd.PersistentFlags().StringVar(&outputFileName, "out", "top-submitters.csv", "Output file name")
-	extractCmd.PersistentFlags().IntVar(&topSize, "topSize", 35, "Number of top submitters to extract.")
-	extractCmd.PersistentFlags().IntVar(&months, "months", 12, "Accumulated number of months.")
+	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters.csv", "Output file name")
+	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
+	extractCmd.PersistentFlags().IntVarP(&months, "months", "m", 12, "Accumulated number of months.")
 
 	// checkCmd.PersistentFlags().BoolVar(&isVerboseExtract, "verboseExtract", false, "Displays useful info during the extraction")
 }
