@@ -91,6 +91,7 @@ func Test_getBoundaries(t *testing.T) {
 	}
 }
 
+//FIXME: these tests are too shallow to be useful
 
 func Test_extractData(t *testing.T) {
 	type args struct {
@@ -109,12 +110,12 @@ func Test_extractData(t *testing.T) {
 			"Happy case",
 			args{
 				inputFilename: "../test_data/short_overview.csv",
-				outputFilename: "",
+				outputFilename: "top-submitters.csv",
 				topSize: 7,
 				months: 12,
 				isVerboseExtract: false,
 			},
-			false,
+			true,
 		},
 		// TODO: Add test cases.
 	}
