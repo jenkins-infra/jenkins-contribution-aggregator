@@ -91,7 +91,7 @@ func Test_getBoundaries(t *testing.T) {
 	}
 }
 
-//FIXME: these tests are too shallow to be useful
+//FIXME: these tests are too shallow to be museful
 
 func Test_extractData(t *testing.T) {
 	type args struct {

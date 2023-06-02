@@ -29,6 +29,7 @@ import (
 
 var isVerbose bool
 
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "jenkins-top-submitters",
@@ -56,10 +57,11 @@ func Execute() {
 
 func init() {
 	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
 
 	rootCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Displays useful info during the extraction")
+
+	//Disable the Cobra completion options
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.jenkins-top-submitters.yaml)")
 
