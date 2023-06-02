@@ -1,0 +1,27 @@
+builds:
+- binary: jenkins-top-submitters
+
+  goos:
+    - linux
+    - windows
+    - darwin
+  goarch:
+    - '386' 
+    - amd64
+    - arm
+    - arm64
+  goarm:
+    - '6' 
+
+  ignore:
+    - goos: darwin
+      goarch: '386'
+    - goos: windows
+      goarch: amd64
+    - goos: windows
+      goarch: arm64
+    - goos: windows
+      goarch: arm
+
+  ldflags:
+    - -s -w -X jenkins-top-submitters/cmd.version={{.Version}} -X jenkins-top-submitters/cmd.commit={{.Commit}} -X jenkins-top-submitters/cmd.date={{.Date}} -X=jenkins-top-submitters/cmd.builtBy=goReleaser

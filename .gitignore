@@ -25,3 +25,6 @@ go.work
 
 #default test file
 top-submitters.csv
+
+#Goreleaser output directory
+dist/

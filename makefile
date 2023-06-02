@@ -26,9 +26,8 @@ test-coverage: ## Run tests with coverage
 	@cat cover.out >> coverage.txt
 
 build:  ## Build the binary file
-	@go build ./jenkins-top-submitters.go
-# 	@goreleaser --snapshot --skip-publish --clean
-# 	@cp dist/FLEcli_darwin_amd64_v1/FLEcli .
+	@goreleaser --snapshot --skip-publish --clean
+	@cp dist/jenkins-top-submitters_darwin_amd64_v1/jenkins-top-submitters .
  
 clean: ## Remove previous build
 	@rm -f ./jenkins-top-submitters
