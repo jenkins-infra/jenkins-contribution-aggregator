@@ -24,4 +24,7 @@ builds:
       goarch: arm
 
   ldflags:
-    - -s -w -X jenkins-top-submitters/cmd.version={{.Version}} -X jenkins-top-submitters/cmd.commit={{.Commit}} -X jenkins-top-submitters/cmd.date={{.Date}} -X=jenkins-top-submitters/cmd.builtBy=goReleaser
+    - -s -w -X github.com/jmMeessen/jenkins-top-submitters/cmd.version={{.Version}} 
+    - -s -w -X github.com/jmMeessen/jenkins-top-submitters/cmd.commit={{.Commit}} 
+    - -s -w -X github.com/jmMeessen/jenkins-top-submitters/cmd.date={{.Date}}
+    - -s -w -X github.com/jmMeessen/jenkins-top-submitters/cmd.builtBy=goReleaser
