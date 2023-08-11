@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      actions: write
     name: goreleaser
     steps:
     - uses: actions/checkout@v3
