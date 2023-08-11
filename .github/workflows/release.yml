@@ -18,7 +18,7 @@ jobs:
       uses: goreleaser/goreleaser-action@v4
       with:
         distribution: goreleaser
-        args: release --release-notes=doc/whats_new.md
+        args: release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # HOMEBREW: ${{ secrets.HOMEBREW }}
