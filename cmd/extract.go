@@ -36,6 +36,7 @@ import (
 var outputFileName string
 var topSize int
 var months int
+var isVerboseExtract bool
 
 type totalized_record struct {
 	User string //Submitter name
@@ -75,7 +76,7 @@ the list (resulting in more thant the specified number of top users).
 			os.Exit(1)
 		}
 
-		if !extractData(args[0], outputFileName, topSize, months, isVerbose) {
+		if !extractData(args[0], outputFileName, topSize, months, isVerboseExtract) {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
@@ -91,7 +92,7 @@ func init() {
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&months, "months", "m", 12, "Accumulated number of months.")
 
-	// checkCmd.PersistentFlags().BoolVar(&isVerboseExtract, "verboseExtract", false, "Displays useful info during the extraction")
+	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
 
 
