@@ -28,10 +28,10 @@ Usage:
   `jenkins-top-submitters check [input file] [flags]`
 
 Flags:
-  `-h, --help   help for check`
-
-Global Flags:
-  `-v, --verbose   Displays useful info during the extraction`
+```
+  -v, --verbose   Displays useful info during the validation
+  -h, --help      help for check
+```
 
 ---
 **EXTRACT** <a name="EXTRACT"></a>
@@ -57,6 +57,7 @@ Flags:
   -m, --months int    Accumulated number of months. (default 12)
   -o, --out string    Output file name (default "top-submitters.csv")
   -t, --topSize int   Number of top submitters to extract. (default 35)
+  -v, --verbose       Displays useful info during the extraction 
 ```
 
 ---

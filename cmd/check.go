@@ -52,7 +52,6 @@ order to be successfully processed.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		isVerboseCheck = isVerbose
 		// When called standalone, we want to give at least some information
 		isSilent := false
 		if !checkFile(args[0], isSilent) {
@@ -64,6 +63,8 @@ order to be successfully processed.`,
 
 // initialize the Cobra processor and flags
 func init() {
+	checkCmd.PersistentFlags().BoolVarP(&isVerboseCheck, "verbose", "v", false, "Displays useful info during the validation")
+
 	rootCmd.AddCommand(checkCmd)
 }
 
