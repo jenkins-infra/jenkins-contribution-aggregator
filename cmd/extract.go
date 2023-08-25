@@ -87,7 +87,7 @@ the list (resulting in more thant the specified number of top users).
 			os.Exit(1)
 		}
 
-		if !extractData(args[0], outputFileName, topSize, period, isVerboseExtract) {
+		if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
@@ -108,7 +108,7 @@ func init() {
 }
 
 // Extracts the top submitters for a given period and writes it to a file
-func extractData(inputFilename string, outputFilename string, topSize int, period int, isVerboseExtract bool) bool {
+func extractData(inputFilename string, outputFilename string, topSize int, endMonth string,period int, isVerboseExtract bool) bool {
 	if isVerboseExtract {
 		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, period, outputFilename)
 	}
@@ -128,7 +128,7 @@ func extractData(inputFilename string, outputFilename string, topSize int, perio
 		return false
 	}
 
-	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, period)
+	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period)
 
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
@@ -210,9 +210,13 @@ func extractData(inputFilename string, outputFilename string, topSize int, perio
 }
 
 // Based on the number of months requested, computes the start/end column and associated date for the given dataset
-func getBoundaries(records [][]string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+func getBoundaries(records [][]string, endMonthStr string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
 	nbrOfColumns := len(records[0])
-	endColumn = nbrOfColumns - 1
+	if (strings.ToUpper(endMonthStr) == "LATEST") {
+		endColumn = nbrOfColumns - 1
+	} else {
+		fmt.Printf("using %s was here\n", endMonthStr)
+	}
 
 	if period >= nbrOfColumns {
 		period = 0

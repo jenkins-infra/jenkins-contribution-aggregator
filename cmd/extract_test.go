@@ -41,6 +41,7 @@ func Test_getBoundaries(t *testing.T) {
 
 	type args struct {
 		records [][]string
+		endMonthStr string
 		months  int
 	}
 	tests := []struct {
@@ -53,28 +54,28 @@ func Test_getBoundaries(t *testing.T) {
 	}{
 		{
 			"Normal case",
-			args{records: records_1, months: 12},
+			args{records: records_1, endMonthStr: "latest", months: 12},
 			5, 16, "2022-05", "2023-04",
 		},
 		{
 			"Get all available months",
-			args{records: records_1, months: 0},
+			args{records: records_1, endMonthStr: "latest", months: 0},
 			1, 16, "2022-01", "2023-04",
 		},
 		{
 			"Get more months than available",
-			args{records: records_1, months: 20},
+			args{records: records_1, endMonthStr: "latest", months: 20},
 			1, 16, "2022-01", "2023-04",
 		},
 		{
 			"short month set",
-			args{records: records_2, months: 12},
+			args{records: records_2, endMonthStr: "latest", months: 12},
 			1, 2, "2022-01", "2022-02",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotStartColumn, gotEndColumn, gotStartMonth, gotEndMonth := getBoundaries(tt.args.records, tt.args.months)
+			gotStartColumn, gotEndColumn, gotStartMonth, gotEndMonth := getBoundaries(tt.args.records, tt.args.endMonthStr, tt.args.months)
 			if gotStartColumn != tt.wantStartColumn {
 				t.Errorf("getBoundaries() gotStartColumn = %v, want %v", gotStartColumn, tt.wantStartColumn)
 			}
@@ -98,6 +99,7 @@ func Test_extractData(t *testing.T) {
 		inputFilename    string
 		outputFilename   string
 		topSize          int
+		endMonthStr string
 		months           int
 		isVerboseExtract bool
 	}
@@ -112,6 +114,7 @@ func Test_extractData(t *testing.T) {
 				inputFilename:    "../test_data/short_overview.csv",
 				outputFilename:   "top-submitters.csv",
 				topSize:          7,
+				endMonthStr:	"latest",
 				months:           12,
 				isVerboseExtract: false,
 			},
@@ -121,7 +124,7 @@ func Test_extractData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := extractData(tt.args.inputFilename, tt.args.outputFilename, tt.args.topSize, tt.args.months, tt.args.isVerboseExtract); got != tt.want {
+			if got := extractData(tt.args.inputFilename, tt.args.outputFilename, tt.args.topSize, tt.args.endMonthStr, tt.args.months, tt.args.isVerboseExtract); got != tt.want {
 				t.Errorf("extractData() = %v, want %v", got, tt.want)
 			}
 		})

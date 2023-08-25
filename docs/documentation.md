@@ -54,11 +54,12 @@ Usage:
 
 Flags:
 ```
-  -h, --help          help for extract
-  -m, --months int    Accumulated number of months. (default 12)
-  -o, --out string    Output file name (default "top-submitters.csv")
-  -t, --topSize int   Number of top submitters to extract. (default 35)
-  -v, --verbose       Displays useful info during the extraction 
+  -h, --help           help for extract
+  -m, --month string   Month to extract top submitters. (default "latest")
+  -o, --out string     Output file name (default "top-submitters.csv")
+  -p, --period int     Number of months to accumulate. (default 12)
+  -t, --topSize int    Number of top submitters to extract. (default 35)
+  -v, --verbose        Displays useful info during the extraction
 ```
 
 ---
