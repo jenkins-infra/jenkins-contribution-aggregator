@@ -26,8 +26,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -35,7 +37,8 @@ import (
 // Variables set from the command line
 var outputFileName string
 var topSize int
-var months int
+var period int
+var endMonth string
 var isVerboseExtract bool
 
 type totalized_record struct {
@@ -43,17 +46,24 @@ type totalized_record struct {
 	Pr   int    //Number of PRs
 }
 
+//TODO: compute a reference date related default output filename
+
+
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
 	Use:   "extract [input file]",
 	Short: "Extracts the top submitters from the supplied pivot table",
 	Long: `This command extract the top submitter for a given period (by default 12 months).
+This interval is counted, by default, from the last month available in the pivot table.
 The input file is first validated before being processed.
-If not specified, the output file name is hardcoded to "top-submitters.csv". 
+
+If not specified, the output file name is hardcoded to "top-submitters_YYYY-MM.csv". 
+The "YYYY-MM" stands for the specified end month (see "--month" flag). It is "LATEST"
+if not end month was specified (default).
 
 The "months" parameter is the number of months used to compute the top users, 
 counting from backwards from the last month. If a 0 months is specified, all the 
-available is counted.
+available months are counted.
 
 The "topSize" parameter defines the number of users considered as top users.
 If more submitters with the same amount of total PRs exist ("ex aequo"), they are included in 
@@ -64,19 +74,27 @@ the list (resulting in more thant the specified number of top users).
 			return err
 		}
 		if !isFileValid(args[0]) {
-			return fmt.Errorf("Invalid file")
+			return fmt.Errorf("Invalid file\n")
+		}
+		if !isValidMonth(endMonth, isVerboseExtract) {
+			return fmt.Errorf("Invalid month\n")
 		}
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
+		
 		if !checkFile(args[0], isSilent) {
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
 		}
 
-		if !extractData(args[0], outputFileName, topSize, months, isVerboseExtract) {
+		if(outputFileName == "top-submitters_YYYY-MM.csv") {
+			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
+		}
+
+		if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
@@ -88,19 +106,18 @@ func init() {
 	rootCmd.AddCommand(extractCmd)
 
 	// definition of flags and configuration settings.
-	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters.csv", "Output file name")
+	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name.")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
-	extractCmd.PersistentFlags().IntVarP(&months, "months", "m", 12, "Accumulated number of months.")
+	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
+	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
 
 	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
 
-
-
 // Extracts the top submitters for a given period and writes it to a file
-func extractData(inputFilename string, outputFilename string, topSize int, months int, isVerboseExtract bool) bool {
+func extractData(inputFilename string, outputFilename string, topSize int, endMonth string, period int, isVerboseExtract bool) bool {
 	if isVerboseExtract {
-		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, months, outputFilename)
+		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, period, outputFilename)
 	}
 
 	//At this stage of the processing, we assume that the input file is correctly formatted
@@ -118,12 +135,19 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 		return false
 	}
 
-	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, months)
+	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period)
+
+	if strings.ToUpper(endMonth) != "LATEST" {
+		if endMonth != mostRecentDate {
+			log.Printf("Unexpected error computing boundaries (\"%s\" != \"%s\"\n", endMonth, mostRecentDate)
+			return false
+		}
+	}
 
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
 
-	//Slice that will contain all the totalized records	
+	//Slice that will contain all the totalized records
 	var new_output_slice []totalized_record
 
 	for i, dataLine := range records {
@@ -152,13 +176,12 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 	// Sort the slice, based on the number of PRs, in descending order
 	sort.Slice(new_output_slice, func(i, j int) bool { return new_output_slice[i].Pr > new_output_slice[j].Pr })
 
-
 	//Loop through list to find the top submitters (and ex-aequo) to load the final list
 	current_total := 0
 	isListComplete := false
-	
+
 	var csv_output_slice [][]string
-	header_row := []string {"Submitter", "Total_PRs"}
+	header_row := []string{"Submitter", "Total_PRs"}
 	csv_output_slice = append(csv_output_slice, header_row)
 	for i, total_record := range new_output_slice {
 		if i < topSize {
@@ -184,38 +207,78 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 
 	//Open output file
 	out, err := os.Create(outputFilename)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer out.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
 
 	//Write the collected data as a CSV file
 	csv_out := csv.NewWriter(out)
 	write_err := csv_out.WriteAll(csv_output_slice)
-    if write_err != nil {
-        log.Fatal(err)
-    }
+	if write_err != nil {
+		log.Fatal(err)
+	}
 	csv_out.Flush()
 
 	return true
 }
 
 // Based on the number of months requested, computes the start/end column and associated date for the given dataset
-func getBoundaries(records [][]string, months int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+func getBoundaries(records [][]string, endMonthStr string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
 	nbrOfColumns := len(records[0])
-	endColumn = nbrOfColumns - 1
+	if strings.ToUpper(endMonthStr) == "LATEST" {
+		endColumn = nbrOfColumns - 1
+	} else {
+		// Search the requested end month. If not found, reset to "latest"
+		found := false
+		for i := 0; i < nbrOfColumns; i++ {
+			if records[0][i] == endMonthStr {
+				endColumn = i
+				found = true
+				break
+			}
+		}
+		if !found {
+			fmt.Printf("Warning: %s not found in dataset, reverting to latest available month\n", endMonthStr)
+			endColumn = nbrOfColumns - 1
+		}
 
-	if months >= nbrOfColumns {
-		months = 0
 	}
 
-	if months == 0 {
+	if period >= nbrOfColumns {
+		period = 0
+	}
+
+	if period == 0 {
 		startColumn = 1
 	} else {
-		startColumn = nbrOfColumns - (months)
+		startColumn = (endColumn - period) + 1
 	}
 	startMonth = records[0][startColumn]
 	endMonth = records[0][endColumn]
 
 	return startColumn, endColumn, startMonth, endMonth
+}
+
+// validates whether  the month parameter has the correct format ("YYYY-MM" or "latest")
+func isValidMonth(month string, isVerbose bool) bool {
+	if month == "" {
+		if isVerbose {
+			fmt.Print("Empty month\n")
+		}
+		return false
+	}
+	if strings.ToUpper(month) == "LATEST" {
+		return true
+	}
+
+	regexpMonth := regexp.MustCompile(`20[12][0-9]-(0[1-9]|1[0-2])`)
+	if !regexpMonth.MatchString(month) {
+		if isVerbose {
+			fmt.Printf("Supplied data (%s) is not in a valid month format. Should be \"YYYY-MM\" and later than 2010\n", month)
+		}
+		return false
+	}
+
+	return true
 }
