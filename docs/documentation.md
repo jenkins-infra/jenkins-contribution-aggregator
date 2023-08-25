@@ -37,6 +37,7 @@ Flags:
 **EXTRACT** <a name="EXTRACT"></a>
 
 This command extract the top submitter for a given period (by default 12 months).
+This interval is counted by default from the last month available in the pivot table.
 The input file is first validated before being processed.
 If not specified, the output file name is hardcoded to "top-submitters.csv". 
 

@@ -35,7 +35,7 @@ import (
 // Variables set from the command line
 var outputFileName string
 var topSize int
-var months int
+var period int
 var isVerboseExtract bool
 
 type totalized_record struct {
@@ -48,6 +48,7 @@ var extractCmd = &cobra.Command{
 	Use:   "extract [input file]",
 	Short: "Extracts the top submitters from the supplied pivot table",
 	Long: `This command extract the top submitter for a given period (by default 12 months).
+This interval is counted, by default, from the last month available in the pivot table.
 The input file is first validated before being processed.
 If not specified, the output file name is hardcoded to "top-submitters.csv". 
 
@@ -76,7 +77,7 @@ the list (resulting in more thant the specified number of top users).
 			os.Exit(1)
 		}
 
-		if !extractData(args[0], outputFileName, topSize, months, isVerboseExtract) {
+		if !extractData(args[0], outputFileName, topSize, period, isVerboseExtract) {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
@@ -90,7 +91,7 @@ func init() {
 	// definition of flags and configuration settings.
 	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters.csv", "Output file name")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
-	extractCmd.PersistentFlags().IntVarP(&months, "months", "m", 12, "Accumulated number of months.")
+	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 
 	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
@@ -98,9 +99,9 @@ func init() {
 
 
 // Extracts the top submitters for a given period and writes it to a file
-func extractData(inputFilename string, outputFilename string, topSize int, months int, isVerboseExtract bool) bool {
+func extractData(inputFilename string, outputFilename string, topSize int, period int, isVerboseExtract bool) bool {
 	if isVerboseExtract {
-		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, months, outputFilename)
+		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, period, outputFilename)
 	}
 
 	//At this stage of the processing, we assume that the input file is correctly formatted
@@ -118,7 +119,7 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 		return false
 	}
 
-	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, months)
+	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, period)
 
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
@@ -201,18 +202,18 @@ func extractData(inputFilename string, outputFilename string, topSize int, month
 }
 
 // Based on the number of months requested, computes the start/end column and associated date for the given dataset
-func getBoundaries(records [][]string, months int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+func getBoundaries(records [][]string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
 	nbrOfColumns := len(records[0])
 	endColumn = nbrOfColumns - 1
 
-	if months >= nbrOfColumns {
-		months = 0
+	if period >= nbrOfColumns {
+		period = 0
 	}
 
-	if months == 0 {
+	if period == 0 {
 		startColumn = 1
 	} else {
-		startColumn = nbrOfColumns - (months)
+		startColumn = nbrOfColumns - (period)
 	}
 	startMonth = records[0][startColumn]
 	endMonth = records[0][endColumn]
