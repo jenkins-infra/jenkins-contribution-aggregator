@@ -40,9 +40,9 @@ var records_2 = [][]string{
 func Test_getBoundaries(t *testing.T) {
 
 	type args struct {
-		records [][]string
+		records     [][]string
 		endMonthStr string
-		months  int
+		months      int
 	}
 	tests := []struct {
 		name            string
@@ -66,6 +66,26 @@ func Test_getBoundaries(t *testing.T) {
 			"Get more months than available",
 			args{records: records_1, endMonthStr: "latest", months: 20},
 			1, 16, "2022-01", "2023-04",
+		},
+		{
+			"Specify end month - normal case",
+			args{records: records_1, endMonthStr: "2023-02", months: 6},
+			9, 14, "2022-09", "2023-02",
+		},
+		{
+			"Specify end month - get all available months",
+			args{records: records_1, endMonthStr: "2023-02", months: 0},
+			1, 14, "2022-01", "2023-02",
+		},
+		{
+			"Specify end month - get more months than available",
+			args{records: records_1, endMonthStr: "2023-02", months: 20},
+			1, 14, "2022-01", "2023-02",
+		},
+		{
+			"Specify end month - end month not found",
+			args{records: records_1, endMonthStr: "2023-08", months: 12},
+			5, 16, "2022-05", "2023-04",
 		},
 		{
 			"short month set",
@@ -99,7 +119,7 @@ func Test_extractData(t *testing.T) {
 		inputFilename    string
 		outputFilename   string
 		topSize          int
-		endMonthStr string
+		endMonthStr      string
 		months           int
 		isVerboseExtract bool
 	}
@@ -114,7 +134,7 @@ func Test_extractData(t *testing.T) {
 				inputFilename:    "../test_data/short_overview.csv",
 				outputFilename:   "top-submitters.csv",
 				topSize:          7,
-				endMonthStr:	"latest",
+				endMonthStr:      "latest",
 				months:           12,
 				isVerboseExtract: false,
 			},

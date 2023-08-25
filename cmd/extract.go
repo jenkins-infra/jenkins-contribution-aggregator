@@ -47,8 +47,7 @@ type totalized_record struct {
 }
 
 //TODO: compute a reference date related default output filename
-//TODO: create function to translate/validate month
-//TODO: search the index of the reference date
+
 
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
@@ -108,7 +107,7 @@ func init() {
 }
 
 // Extracts the top submitters for a given period and writes it to a file
-func extractData(inputFilename string, outputFilename string, topSize int, endMonth string,period int, isVerboseExtract bool) bool {
+func extractData(inputFilename string, outputFilename string, topSize int, endMonth string, period int, isVerboseExtract bool) bool {
 	if isVerboseExtract {
 		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, period, outputFilename)
 	}
@@ -129,6 +128,13 @@ func extractData(inputFilename string, outputFilename string, topSize int, endMo
 	}
 
 	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period)
+
+	if strings.ToUpper(endMonth) != "LATEST" {
+		if endMonth != mostRecentDate {
+			log.Printf("Unexpected error computing boundaries (\"%s\" != \"%s\"\n", endMonth, mostRecentDate)
+			return false
+		}
+	}
 
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
@@ -212,10 +218,23 @@ func extractData(inputFilename string, outputFilename string, topSize int, endMo
 // Based on the number of months requested, computes the start/end column and associated date for the given dataset
 func getBoundaries(records [][]string, endMonthStr string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
 	nbrOfColumns := len(records[0])
-	if (strings.ToUpper(endMonthStr) == "LATEST") {
+	if strings.ToUpper(endMonthStr) == "LATEST" {
 		endColumn = nbrOfColumns - 1
 	} else {
-		fmt.Printf("using %s was here\n", endMonthStr)
+		// Search the requested end month. If not found, reset to "latest"
+		found := false
+		for i := 0; i < nbrOfColumns; i++ {
+			if records[0][i] == endMonthStr {
+				endColumn = i
+				found = true
+				break
+			}
+		}
+		if !found {
+			fmt.Printf("Warning: %s not found in dataset, reverting to latest available month\n", endMonthStr)
+			endColumn = nbrOfColumns - 1
+		}
+
 	}
 
 	if period >= nbrOfColumns {
@@ -225,7 +244,7 @@ func getBoundaries(records [][]string, endMonthStr string, period int) (startCol
 	if period == 0 {
 		startColumn = 1
 	} else {
-		startColumn = nbrOfColumns - (period)
+		startColumn = (endColumn - period) + 1
 	}
 	startMonth = records[0][startColumn]
 	endMonth = records[0][endColumn]
