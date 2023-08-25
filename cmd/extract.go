@@ -26,8 +26,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -36,12 +38,17 @@ import (
 var outputFileName string
 var topSize int
 var period int
+var endMonth string
 var isVerboseExtract bool
 
 type totalized_record struct {
 	User string //Submitter name
 	Pr   int    //Number of PRs
 }
+
+//TODO: compute a reference date related default output filename
+//TODO: create function to translate/validate month
+//TODO: search the index of the reference date
 
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
@@ -65,7 +72,10 @@ the list (resulting in more thant the specified number of top users).
 			return err
 		}
 		if !isFileValid(args[0]) {
-			return fmt.Errorf("Invalid file")
+			return fmt.Errorf("Invalid file\n")
+		}
+		if !isValidMonth(endMonth, isVerboseExtract) {
+			return fmt.Errorf("Invalid month\n")
 		}
 		return nil
 	},
@@ -92,11 +102,10 @@ func init() {
 	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters.csv", "Output file name")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
+	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
 
 	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
-
-
 
 // Extracts the top submitters for a given period and writes it to a file
 func extractData(inputFilename string, outputFilename string, topSize int, period int, isVerboseExtract bool) bool {
@@ -124,7 +133,7 @@ func extractData(inputFilename string, outputFilename string, topSize int, perio
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
 
-	//Slice that will contain all the totalized records	
+	//Slice that will contain all the totalized records
 	var new_output_slice []totalized_record
 
 	for i, dataLine := range records {
@@ -153,13 +162,12 @@ func extractData(inputFilename string, outputFilename string, topSize int, perio
 	// Sort the slice, based on the number of PRs, in descending order
 	sort.Slice(new_output_slice, func(i, j int) bool { return new_output_slice[i].Pr > new_output_slice[j].Pr })
 
-
 	//Loop through list to find the top submitters (and ex-aequo) to load the final list
 	current_total := 0
 	isListComplete := false
-	
+
 	var csv_output_slice [][]string
-	header_row := []string {"Submitter", "Total_PRs"}
+	header_row := []string{"Submitter", "Total_PRs"}
 	csv_output_slice = append(csv_output_slice, header_row)
 	for i, total_record := range new_output_slice {
 		if i < topSize {
@@ -185,17 +193,17 @@ func extractData(inputFilename string, outputFilename string, topSize int, perio
 
 	//Open output file
 	out, err := os.Create(outputFilename)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer out.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
 
 	//Write the collected data as a CSV file
 	csv_out := csv.NewWriter(out)
 	write_err := csv_out.WriteAll(csv_output_slice)
-    if write_err != nil {
-        log.Fatal(err)
-    }
+	if write_err != nil {
+		log.Fatal(err)
+	}
 	csv_out.Flush()
 
 	return true
@@ -219,4 +227,27 @@ func getBoundaries(records [][]string, period int) (startColumn int, endColumn i
 	endMonth = records[0][endColumn]
 
 	return startColumn, endColumn, startMonth, endMonth
+}
+
+// validates whether  the month parameter has the correct format ("YYYY-MM" or "latest")
+func isValidMonth(month string, isVerbose bool) bool {
+	if month == "" {
+		if isVerbose {
+			fmt.Print("Empty month\n")
+		}
+		return false
+	}
+	if strings.ToUpper(month) == "LATEST" {
+		return true
+	}
+
+	regexpMonth := regexp.MustCompile(`20[12][0-9]-(0[1-9]|1[0-2])`)
+	if !regexpMonth.MatchString(month) {
+		if isVerbose {
+			fmt.Printf("Supplied data (%s) is not in a valid month format. Should be \"YYYY-MM\" and later than 2010\n", month)
+		}
+		return false
+	}
+
+	return true
 }
