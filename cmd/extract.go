@@ -56,11 +56,14 @@ var extractCmd = &cobra.Command{
 	Long: `This command extract the top submitter for a given period (by default 12 months).
 This interval is counted, by default, from the last month available in the pivot table.
 The input file is first validated before being processed.
-If not specified, the output file name is hardcoded to "top-submitters.csv". 
+
+If not specified, the output file name is hardcoded to "top-submitters_YYYY-MM.csv". 
+The "YYYY-MM" stands for the specified end month (see "--month" flag). It is "LATEST"
+if not end month was specified (default).
 
 The "months" parameter is the number of months used to compute the top users, 
 counting from backwards from the last month. If a 0 months is specified, all the 
-available is counted.
+available months are counted.
 
 The "topSize" parameter defines the number of users considered as top users.
 If more submitters with the same amount of total PRs exist ("ex aequo"), they are included in 
@@ -81,9 +84,14 @@ the list (resulting in more thant the specified number of top users).
 	Run: func(cmd *cobra.Command, args []string) {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
+		
 		if !checkFile(args[0], isSilent) {
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
+		}
+
+		if(outputFileName == "top-submitters_YYYY-MM.csv") {
+			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
 		}
 
 		if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
@@ -98,7 +106,7 @@ func init() {
 	rootCmd.AddCommand(extractCmd)
 
 	// definition of flags and configuration settings.
-	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters.csv", "Output file name")
+	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name.")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")

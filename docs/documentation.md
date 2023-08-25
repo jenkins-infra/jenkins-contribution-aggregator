@@ -39,7 +39,10 @@ Flags:
 This command extract the top submitter for a given period (by default 12 months).
 This interval is counted by default from the last month available in the pivot table.
 The input file is first validated before being processed.
-If not specified, the output file name is hardcoded to "top-submitters.csv". 
+
+If not specified, the output file name is hardcoded to "top-submitters_YYYY-MM.csv".
+The "YYYY-MM" stands for the specified end month (see "--month" flag). It is "LATEST"
+if not end month was specified (default).
 
 The "months" parameter is the number of months used to compute the top users, 
 counting from backwards from the last month. If a 0 months is specified, all the 
@@ -56,7 +59,7 @@ Flags:
 ```
   -h, --help           help for extract
   -m, --month string   Month to extract top submitters. (default "latest")
-  -o, --out string     Output file name (default "top-submitters.csv")
+  -o, --out string     Output file name. (default "top-submitters_YYYY-MM.csv")
   -p, --period int     Number of months to accumulate. (default 12)
   -t, --topSize int    Number of top submitters to extract. (default 35)
   -v, --verbose        Displays useful info during the extraction

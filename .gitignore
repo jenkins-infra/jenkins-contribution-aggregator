@@ -24,7 +24,7 @@ go.work
 .vscode/
 
 #default test file
-top-submitters.csv
+top-submitter*.csv
 
 #Goreleaser output directory
 dist/
