@@ -62,10 +62,21 @@ compare it with an extraction with the same settings but with an X amount of mon
 			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
 		}
 
-		// if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
-		// 	fmt.Print("Failed to extract data")
-		// 	os.Exit(1)
-		// }
+		// Extract the data (with no offset)
+		result, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, isVerboseExtract)
+		if !result {
+			fmt.Print("Failed to extract data")
+			os.Exit(1)
+		}
+
+		// Extract the data (with offset this time)
+		result, csv_offset_output_slice := extractData(args[0], topSize, endMonth, period, compareWith, isVerboseExtract)
+		if !result {
+			fmt.Print("Failed to extract offset-ted data")
+			os.Exit(1)
+		}
+
+		compareExtractedData(csv_output_slice, csv_offset_output_slice)
 	},
 }
 
@@ -80,4 +91,18 @@ func init() {
 	compareCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
 
 	compareCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
+}
+
+func compareExtractedData(recentData [][]string, oldData [][]string) (enrichedExtractedData [][]string) {
+	return nil
+
+}
+
+func isSubmitterFound(dataset [][]string, submitter string) (found bool) {
+	for i := range dataset {
+		if (dataset[i][0] == submitter) {
+			return true
+		}
+	}
+	return false
 }
