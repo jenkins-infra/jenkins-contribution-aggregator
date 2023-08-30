@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -84,22 +83,23 @@ the list (resulting in more thant the specified number of top users).
 		// When called standalone, we want to give the minimal information
 		isSilent := true
 
+		// Check input file
 		if !checkFile(args[0], isSilent) {
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
 		}
 
-		if outputFileName == "top-submitters_YYYY-MM.csv" {
-			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
-		}
-
-		// var csv_output_slice [][]string
+		// Extract the data
 		result, csv_output_slice := extractData(args[0], topSize, endMonth, period, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
 
+		// write the extracted data as a file
+		if outputFileName == "top-submitters_YYYY-MM.csv" {
+			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
+		}
 		if isVerboseExtract {
 			fmt.Printf("Writing extraction to \"%s\"\n\n", outputFileName)
 		}
@@ -252,43 +252,3 @@ func getBoundaries(records [][]string, endMonthStr string, period int) (startCol
 	return startColumn, endColumn, startMonth, endMonth
 }
 
-// validates whether  the month parameter has the correct format ("YYYY-MM" or "latest")
-func isValidMonth(month string, isVerbose bool) bool {
-	if month == "" {
-		if isVerbose {
-			fmt.Print("Empty month\n")
-		}
-		return false
-	}
-	if strings.ToUpper(month) == "LATEST" {
-		return true
-	}
-
-	regexpMonth := regexp.MustCompile(`20[12][0-9]-(0[1-9]|1[0-2])`)
-	if !regexpMonth.MatchString(month) {
-		if isVerbose {
-			fmt.Printf("Supplied data (%s) is not in a valid month format. Should be \"YYYY-MM\" and later than 2010\n", month)
-		}
-		return false
-	}
-
-	return true
-}
-
-// Write the string slice to a file formatted as a CSV
-func writeCSVtoFile(outputFileName string, csv_output_slice [][]string) {
-	//Open output file
-	out, err := os.Create(outputFileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
-
-	//Write the collected data as a CSV file
-	csv_out := csv.NewWriter(out)
-	write_err := csv_out.WriteAll(csv_output_slice)
-	if write_err != nil {
-		log.Fatal(err)
-	}
-	csv_out.Flush()
-}
