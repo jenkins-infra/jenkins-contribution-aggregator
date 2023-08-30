@@ -94,13 +94,45 @@ func init() {
 }
 
 func compareExtractedData(recentData [][]string, oldData [][]string) (enrichedExtractedData [][]string) {
-	return nil
+	var output_slice [][]string
+	header_row := []string{"Submitter", "Total_PRs", "Status"}
+	output_slice = append(output_slice, header_row)
 
+	// Check for new submitters
+	for i := range recentData {
+		//skip the title
+		if i == 0 {
+			continue
+		}
+
+		status := ""
+		if !isSubmitterFound(oldData, recentData[i][0]) {
+			status = "new top submitter"
+		}
+
+		dataRow := []string{recentData[i][0], recentData[i][1], status}
+		output_slice = append(output_slice, dataRow)
+	}
+
+	// Check for churned submitters
+	for i := range oldData {
+		//skip the title
+		if i == 0 {
+			continue
+		}
+
+		if !isSubmitterFound(recentData, oldData[i][0]) {
+			dataRow := []string{oldData[i][0], "", "churned"}
+			output_slice = append(output_slice, dataRow)
+		}
+	}	
+	return output_slice
 }
 
+// Check whether the submitter exists in the supplied dataset
 func isSubmitterFound(dataset [][]string, submitter string) (found bool) {
 	for i := range dataset {
-		if (dataset[i][0] == submitter) {
+		if dataset[i][0] == submitter {
 			return true
 		}
 	}

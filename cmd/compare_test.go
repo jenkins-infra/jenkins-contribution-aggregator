@@ -21,7 +21,10 @@ THE SOFTWARE.
 */
 package cmd
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 var searchSubmitter_dataset = [][]string{
 	{"submitter", "PR"},
@@ -56,6 +59,55 @@ func Test_isSubmitterFound(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if gotFound := isSubmitterFound(tt.args.dataset, tt.args.submitter); gotFound != tt.wantFound {
 				t.Errorf("isSubmitterFound() = %v, want %v", gotFound, tt.wantFound)
+			}
+		})
+	}
+}
+
+var dataset_1 = [][]string{
+	{"submitter", "PR"},
+	{"alpha", "1"},
+	{"bravo", "2"},
+	{"charly", "3"},
+	{"delta", "4"},
+}
+var dataset_2 = [][]string{
+	{"submitter", "PR"},
+	{"alpha", "1"},
+	{"charly", "2"},
+	{"delta", "3"},
+	{"zebra", "4"},
+}
+
+var dataset_result = [][]string{
+	{"Submitter", "Total_PRs", "Status"},
+	{"alpha", "1", ""},
+	{"bravo", "2", "new top submitter"},
+	{"charly", "3", ""},
+	{"delta", "4", ""},
+	{"zebra", "", "churned"},
+}
+
+func Test_compareExtractedData(t *testing.T) {
+	type args struct {
+		recentData [][]string
+		oldData    [][]string
+	}
+	tests := []struct {
+		name                      string
+		args                      args
+		wantEnrichedExtractedData [][]string
+	}{
+		{
+			"case 1",
+			args{recentData: dataset_1, oldData: dataset_2},
+			dataset_result,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotEnrichedExtractedData := compareExtractedData(tt.args.recentData, tt.args.oldData); !reflect.DeepEqual(gotEnrichedExtractedData, tt.wantEnrichedExtractedData) {
+				t.Errorf("compareExtractedData() = %v, want %v", gotEnrichedExtractedData, tt.wantEnrichedExtractedData)
 			}
 		})
 	}
