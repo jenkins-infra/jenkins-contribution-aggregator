@@ -76,7 +76,16 @@ compare it with an extraction with the same settings but with an X amount of mon
 			os.Exit(1)
 		}
 
-		compareExtractedData(csv_output_slice, csv_offset_output_slice)
+		enrichedExtractedData := compareExtractedData(csv_output_slice, csv_offset_output_slice)
+
+		// write the extracted data as a file
+		if outputFileName == "top-submitters_YYYY-MM.csv" {
+			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
+		}
+		if isVerboseExtract {
+			fmt.Printf("Writing compare to \"%s\"\n\n", outputFileName)
+		}
+		writeCSVtoFile(outputFileName, enrichedExtractedData)
 	},
 }
 
@@ -107,7 +116,7 @@ func compareExtractedData(recentData [][]string, oldData [][]string) (enrichedEx
 
 		status := ""
 		if !isSubmitterFound(oldData, recentData[i][0]) {
-			status = "new top submitter"
+			status = "new"
 		}
 
 		dataRow := []string{recentData[i][0], recentData[i][1], status}
@@ -125,7 +134,7 @@ func compareExtractedData(recentData [][]string, oldData [][]string) (enrichedEx
 			dataRow := []string{oldData[i][0], "", "churned"}
 			output_slice = append(output_slice, dataRow)
 		}
-	}	
+	}
 	return output_slice
 }
 

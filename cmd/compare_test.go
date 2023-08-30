@@ -82,7 +82,7 @@ var dataset_2 = [][]string{
 var dataset_result = [][]string{
 	{"Submitter", "Total_PRs", "Status"},
 	{"alpha", "1", ""},
-	{"bravo", "2", "new top submitter"},
+	{"bravo", "2", "new"},
 	{"charly", "3", ""},
 	{"delta", "4", ""},
 	{"zebra", "", "churned"},
