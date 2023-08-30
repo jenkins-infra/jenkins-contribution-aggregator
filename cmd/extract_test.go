@@ -22,6 +22,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -35,6 +36,19 @@ var records_2 = [][]string{
 	{"", "2022-01", "2022-02"},
 	{"0x41head", "1", "2"},
 	{"AScripnic", "1", "2"},
+}
+
+var resultSlice_1 = [][]string{
+	{"Submitter", "Total_PRs"},
+	{"0x41head", "78"},
+	{"AayushSaini101", "15"},
+	{"ChadiEM", "8"},
+	{"Artmorse", "6"},
+	{"Abingcbc", "5"},
+	{"CatherineKiiru", "4"},
+	{"AndKiel", "4"},
+	{"Absh-Day", "4"},
+	{"BorisYaoA", "4"},
 }
 
 func Test_getBoundaries(t *testing.T) {
@@ -112,44 +126,6 @@ func Test_getBoundaries(t *testing.T) {
 	}
 }
 
-//FIXME: these tests are too shallow to be museful
-
-func Test_extractData(t *testing.T) {
-	type args struct {
-		inputFilename    string
-		outputFilename   string
-		topSize          int
-		endMonthStr      string
-		months           int
-		isVerboseExtract bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			"Happy case",
-			args{
-				inputFilename:    "../test_data/short_overview.csv",
-				outputFilename:   "top-submitters.csv",
-				topSize:          7,
-				endMonthStr:      "latest",
-				months:           12,
-				isVerboseExtract: false,
-			},
-			true,
-		},
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := extractData(tt.args.inputFilename, tt.args.outputFilename, tt.args.topSize, tt.args.endMonthStr, tt.args.months, tt.args.isVerboseExtract); got != tt.want {
-				t.Errorf("extractData() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func Test_validateMonth(t *testing.T) {
 	type args struct {
@@ -226,6 +202,46 @@ func Test_validateMonth(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := isValidMonth(tt.args.month, tt.args.isVerbose); got != tt.want {
 				t.Errorf("validateMonth() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_extractData(t *testing.T) {
+	type args struct {
+		inputFilename    string
+		topSize          int
+		endMonth         string
+		period           int
+		isVerboseExtract bool
+	}
+	tests := []struct {
+		name            string
+		args            args
+		wantResult      bool
+		wantOutputSlice [][]string
+	}{
+		{
+			"Happy case",
+			args{
+				inputFilename:    "../test_data/short_overview.csv",
+				topSize:          7,
+				endMonth:         "latest",
+				period:           12,
+				isVerboseExtract: false,
+			},
+			true, resultSlice_1,
+		},
+		//FIXME: these tests are too shallow to be museful
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotResult, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.isVerboseExtract)
+			if gotResult != tt.wantResult {
+				t.Errorf("extractData() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+			if !reflect.DeepEqual(gotOutputSlice, tt.wantOutputSlice) {
+				t.Errorf("extractData() gotOutputSlice = %v, want %v", gotOutputSlice, tt.wantOutputSlice)
 			}
 		})
 	}

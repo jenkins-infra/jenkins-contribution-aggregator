@@ -52,20 +52,20 @@ compare it with an extraction with the same settings but with an X amount of mon
 	Run: func(cmd *cobra.Command, args []string) {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
-		
+
 		if !checkFile(args[0], isSilent) {
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
 		}
 
-		if(outputFileName == "top-submitters_YYYY-MM.csv") {
+		if outputFileName == "top-submitters_YYYY-MM.csv" {
 			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
 		}
 
-		if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
-			fmt.Print("Failed to extract data")
-			os.Exit(1)
-		}
+		// if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
+		// 	fmt.Print("Failed to extract data")
+		// 	os.Exit(1)
+		// }
 	},
 }
 
