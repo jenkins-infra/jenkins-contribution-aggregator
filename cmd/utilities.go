@@ -40,7 +40,6 @@ func isFileValid(fileName string) bool {
 	return !info.IsDir()
 }
 
-
 // validates whether  the month parameter has the correct format ("YYYY-MM" or "latest")
 func isValidMonth(month string, isVerbose bool) bool {
 	if month == "" {

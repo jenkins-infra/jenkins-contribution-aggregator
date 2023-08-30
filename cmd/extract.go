@@ -89,8 +89,8 @@ the list (resulting in more thant the specified number of top users).
 			os.Exit(1)
 		}
 
-		// Extract the data
-		result, csv_output_slice := extractData(args[0], topSize, endMonth, period, isVerboseExtract)
+		// Extract the data (with no offset)
+		result, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
@@ -122,7 +122,8 @@ func init() {
 }
 
 // Extracts the top submitters for a given period and writes it to a file
-func extractData(inputFilename string, topSize int, endMonth string, period int, isVerboseExtract bool) (result bool, outputSlice [][]string) {
+// Offset defines the number of months before the specified endMonth the extraction must be done (needed for the COMPARE command)
+func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, isVerboseExtract bool) (result bool, outputSlice [][]string) {
 	if isVerboseExtract {
 		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n\n", inputFilename, topSize, period)
 	}
@@ -142,7 +143,7 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 		return false, nil
 	}
 
-	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period)
+	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period, offset)
 
 	if strings.ToUpper(endMonth) != "LATEST" {
 		if endMonth != mostRecentDate {
@@ -216,7 +217,7 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 }
 
 // Based on the number of months requested, computes the start/end column and associated date for the given dataset
-func getBoundaries(records [][]string, endMonthStr string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+func getBoundaries(records [][]string, endMonthStr string, period int, offset int) (startColumn int, endColumn int, startMonth string, endMonth string) {
 	nbrOfColumns := len(records[0])
 	if strings.ToUpper(endMonthStr) == "LATEST" {
 		endColumn = nbrOfColumns - 1
@@ -251,4 +252,3 @@ func getBoundaries(records [][]string, endMonthStr string, period int) (startCol
 
 	return startColumn, endColumn, startMonth, endMonth
 }
-

@@ -57,6 +57,7 @@ func Test_getBoundaries(t *testing.T) {
 		records     [][]string
 		endMonthStr string
 		months      int
+		offset      int
 	}
 	tests := []struct {
 		name            string
@@ -68,48 +69,48 @@ func Test_getBoundaries(t *testing.T) {
 	}{
 		{
 			"Normal case",
-			args{records: records_1, endMonthStr: "latest", months: 12},
+			args{records: records_1, endMonthStr: "latest", months: 12, offset: 0},
 			5, 16, "2022-05", "2023-04",
 		},
 		{
 			"Get all available months",
-			args{records: records_1, endMonthStr: "latest", months: 0},
+			args{records: records_1, endMonthStr: "latest", months: 0, offset: 0},
 			1, 16, "2022-01", "2023-04",
 		},
 		{
 			"Get more months than available",
-			args{records: records_1, endMonthStr: "latest", months: 20},
+			args{records: records_1, endMonthStr: "latest", months: 20, offset: 0},
 			1, 16, "2022-01", "2023-04",
 		},
 		{
 			"Specify end month - normal case",
-			args{records: records_1, endMonthStr: "2023-02", months: 6},
+			args{records: records_1, endMonthStr: "2023-02", months: 6, offset: 0},
 			9, 14, "2022-09", "2023-02",
 		},
 		{
 			"Specify end month - get all available months",
-			args{records: records_1, endMonthStr: "2023-02", months: 0},
+			args{records: records_1, endMonthStr: "2023-02", months: 0, offset: 0},
 			1, 14, "2022-01", "2023-02",
 		},
 		{
 			"Specify end month - get more months than available",
-			args{records: records_1, endMonthStr: "2023-02", months: 20},
+			args{records: records_1, endMonthStr: "2023-02", months: 20, offset: 0},
 			1, 14, "2022-01", "2023-02",
 		},
 		{
 			"Specify end month - end month not found",
-			args{records: records_1, endMonthStr: "2023-08", months: 12},
+			args{records: records_1, endMonthStr: "2023-08", months: 12, offset: 0},
 			5, 16, "2022-05", "2023-04",
 		},
 		{
 			"short month set",
-			args{records: records_2, endMonthStr: "latest", months: 12},
+			args{records: records_2, endMonthStr: "latest", months: 12, offset: 0},
 			1, 2, "2022-01", "2022-02",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotStartColumn, gotEndColumn, gotStartMonth, gotEndMonth := getBoundaries(tt.args.records, tt.args.endMonthStr, tt.args.months)
+			gotStartColumn, gotEndColumn, gotStartMonth, gotEndMonth := getBoundaries(tt.args.records, tt.args.endMonthStr, tt.args.months, tt.args.offset)
 			if gotStartColumn != tt.wantStartColumn {
 				t.Errorf("getBoundaries() gotStartColumn = %v, want %v", gotStartColumn, tt.wantStartColumn)
 			}
@@ -126,13 +127,13 @@ func Test_getBoundaries(t *testing.T) {
 	}
 }
 
-
 func Test_extractData(t *testing.T) {
 	type args struct {
 		inputFilename    string
 		topSize          int
 		endMonth         string
 		period           int
+		offset           int
 		isVerboseExtract bool
 	}
 	tests := []struct {
@@ -156,7 +157,7 @@ func Test_extractData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResult, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.isVerboseExtract)
+			gotResult, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
 			if gotResult != tt.wantResult {
 				t.Errorf("extractData() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}

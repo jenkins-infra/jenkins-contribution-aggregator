@@ -60,7 +60,6 @@ func Test_isFileValid(t *testing.T) {
 	}
 }
 
-
 func Test_validateMonth(t *testing.T) {
 	type args struct {
 		month     string
@@ -140,4 +139,3 @@ func Test_validateMonth(t *testing.T) {
 		})
 	}
 }
-
