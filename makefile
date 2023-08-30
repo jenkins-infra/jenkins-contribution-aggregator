@@ -31,6 +31,7 @@ build:  ## Build the binary file
  
 clean: ## Remove previous build
 	@rm -f ./jenkins-top-submitters
+	@rm -f ./rm top-submitters_*.csv
 	@rm -f ./cover.out
 	@rm -f ./coverage.txt
  

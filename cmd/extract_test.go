@@ -22,6 +22,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -37,12 +38,26 @@ var records_2 = [][]string{
 	{"AScripnic", "1", "2"},
 }
 
+var resultSlice_1 = [][]string{
+	{"Submitter", "Total_PRs"},
+	{"0x41head", "78"},
+	{"AayushSaini101", "15"},
+	{"ChadiEM", "8"},
+	{"Artmorse", "6"},
+	{"Abingcbc", "5"},
+	{"CatherineKiiru", "4"},
+	{"AndKiel", "4"},
+	{"Absh-Day", "4"},
+	{"BorisYaoA", "4"},
+}
+
 func Test_getBoundaries(t *testing.T) {
 
 	type args struct {
 		records     [][]string
 		endMonthStr string
 		months      int
+		offset      int
 	}
 	tests := []struct {
 		name            string
@@ -54,48 +69,68 @@ func Test_getBoundaries(t *testing.T) {
 	}{
 		{
 			"Normal case",
-			args{records: records_1, endMonthStr: "latest", months: 12},
+			args{records: records_1, endMonthStr: "latest", months: 12, offset: 0},
 			5, 16, "2022-05", "2023-04",
 		},
 		{
 			"Get all available months",
-			args{records: records_1, endMonthStr: "latest", months: 0},
+			args{records: records_1, endMonthStr: "latest", months: 0, offset: 0},
 			1, 16, "2022-01", "2023-04",
 		},
 		{
 			"Get more months than available",
-			args{records: records_1, endMonthStr: "latest", months: 20},
+			args{records: records_1, endMonthStr: "latest", months: 20, offset: 0},
 			1, 16, "2022-01", "2023-04",
 		},
 		{
 			"Specify end month - normal case",
-			args{records: records_1, endMonthStr: "2023-02", months: 6},
+			args{records: records_1, endMonthStr: "2023-02", months: 6, offset: 0},
 			9, 14, "2022-09", "2023-02",
 		},
 		{
 			"Specify end month - get all available months",
-			args{records: records_1, endMonthStr: "2023-02", months: 0},
+			args{records: records_1, endMonthStr: "2023-02", months: 0, offset: 0},
 			1, 14, "2022-01", "2023-02",
 		},
 		{
 			"Specify end month - get more months than available",
-			args{records: records_1, endMonthStr: "2023-02", months: 20},
+			args{records: records_1, endMonthStr: "2023-02", months: 20, offset: 0},
 			1, 14, "2022-01", "2023-02",
 		},
 		{
 			"Specify end month - end month not found",
-			args{records: records_1, endMonthStr: "2023-08", months: 12},
+			args{records: records_1, endMonthStr: "2023-08", months: 12, offset: 0},
 			5, 16, "2022-05", "2023-04",
 		},
 		{
 			"short month set",
-			args{records: records_2, endMonthStr: "latest", months: 12},
+			args{records: records_2, endMonthStr: "latest", months: 12, offset: 0},
 			1, 2, "2022-01", "2022-02",
+		},
+		{
+			"Normal case with offset",
+			args{records: records_1, endMonthStr: "latest", months: 12, offset: 1},
+			4, 15, "2022-04", "2023-03",
+		},
+		{
+			"Normal case with endMonth and offset",
+			args{records: records_1, endMonthStr: "2023-02", months: 6, offset: 1},
+			8, 13, "2022-08", "2023-01",
+		},
+		{
+			"endMonth and offset out od bound",
+			args{records: records_1, endMonthStr: "2023-02", months: 6, offset: 16},
+			0, 0, "", "",
+		},
+		{
+			"offset with latest out of dataset",
+			args{records: records_1, endMonthStr: "latest", months: 12, offset: 16},
+			0, 0, "", "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotStartColumn, gotEndColumn, gotStartMonth, gotEndMonth := getBoundaries(tt.args.records, tt.args.endMonthStr, tt.args.months)
+			gotStartColumn, gotEndColumn, gotStartMonth, gotEndMonth := getBoundaries(tt.args.records, tt.args.endMonthStr, tt.args.months, tt.args.offset)
 			if gotStartColumn != tt.wantStartColumn {
 				t.Errorf("getBoundaries() gotStartColumn = %v, want %v", gotStartColumn, tt.wantStartColumn)
 			}
@@ -112,120 +147,42 @@ func Test_getBoundaries(t *testing.T) {
 	}
 }
 
-//FIXME: these tests are too shallow to be museful
-
 func Test_extractData(t *testing.T) {
 	type args struct {
 		inputFilename    string
-		outputFilename   string
 		topSize          int
-		endMonthStr      string
-		months           int
+		endMonth         string
+		period           int
+		offset           int
 		isVerboseExtract bool
 	}
 	tests := []struct {
-		name string
-		args args
-		want bool
+		name            string
+		args            args
+		wantResult      bool
+		wantOutputSlice [][]string
 	}{
 		{
 			"Happy case",
 			args{
 				inputFilename:    "../test_data/short_overview.csv",
-				outputFilename:   "top-submitters.csv",
 				topSize:          7,
-				endMonthStr:      "latest",
-				months:           12,
+				endMonth:         "latest",
+				period:           12,
 				isVerboseExtract: false,
 			},
-			true,
+			true, resultSlice_1,
 		},
-		// TODO: Add test cases.
+		//FIXME: these tests are too shallow to be museful
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := extractData(tt.args.inputFilename, tt.args.outputFilename, tt.args.topSize, tt.args.endMonthStr, tt.args.months, tt.args.isVerboseExtract); got != tt.want {
-				t.Errorf("extractData() = %v, want %v", got, tt.want)
+			gotResult, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
+			if gotResult != tt.wantResult {
+				t.Errorf("extractData() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}
-		})
-	}
-}
-
-func Test_validateMonth(t *testing.T) {
-	type args struct {
-		month     string
-		isVerbose bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want bool
-	}{
-		{
-			"lowercase latest",
-			args{"latest", true},
-			true,
-		},
-		{
-			"uppercase latest",
-			args{"LATEST", true},
-			true,
-		},
-		{
-			"empty month",
-			args{"", true},
-			false,
-		},
-		{
-			"happy case 1",
-			args{"2023-08", true},
-			true,
-		},
-		{
-			"happy case 2",
-			args{"2013-08", true},
-			true,
-		},
-		{
-			"happy case 3",
-			args{"2023-12", true},
-			true,
-		},
-		{
-			"happy case 4",
-			args{"2020-12", true},
-			true,
-		},
-		{
-			"invalid month 1",
-			args{"2023-13", true},
-			false,
-		},
-		{
-			"invalid month 2",
-			args{"2023-00", true},
-			false,
-		},
-		{
-			"invalid year (too old)",
-			args{"2003-08", true},
-			false,
-		},
-		{
-			"plain junk 1",
-			args{"2023", true},
-			false,
-		},
-		{
-			"plain junk 2",
-			args{"blaah", true},
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := isValidMonth(tt.args.month, tt.args.isVerbose); got != tt.want {
-				t.Errorf("validateMonth() = %v, want %v", got, tt.want)
+			if !reflect.DeepEqual(gotOutputSlice, tt.wantOutputSlice) {
+				t.Errorf("extractData() gotOutputSlice = %v, want %v", gotOutputSlice, tt.wantOutputSlice)
 			}
 		})
 	}

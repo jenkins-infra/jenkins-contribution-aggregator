@@ -59,3 +59,83 @@ func Test_isFileValid(t *testing.T) {
 		})
 	}
 }
+
+func Test_validateMonth(t *testing.T) {
+	type args struct {
+		month     string
+		isVerbose bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"lowercase latest",
+			args{"latest", true},
+			true,
+		},
+		{
+			"uppercase latest",
+			args{"LATEST", true},
+			true,
+		},
+		{
+			"empty month",
+			args{"", true},
+			false,
+		},
+		{
+			"happy case 1",
+			args{"2023-08", true},
+			true,
+		},
+		{
+			"happy case 2",
+			args{"2013-08", true},
+			true,
+		},
+		{
+			"happy case 3",
+			args{"2023-12", true},
+			true,
+		},
+		{
+			"happy case 4",
+			args{"2020-12", true},
+			true,
+		},
+		{
+			"invalid month 1",
+			args{"2023-13", true},
+			false,
+		},
+		{
+			"invalid month 2",
+			args{"2023-00", true},
+			false,
+		},
+		{
+			"invalid year (too old)",
+			args{"2003-08", true},
+			false,
+		},
+		{
+			"plain junk 1",
+			args{"2023", true},
+			false,
+		},
+		{
+			"plain junk 2",
+			args{"blaah", true},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isValidMonth(tt.args.month, tt.args.isVerbose); got != tt.want {
+				t.Errorf("validateMonth() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

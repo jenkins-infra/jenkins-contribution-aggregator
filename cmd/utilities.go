@@ -23,7 +23,12 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"encoding/csv"
+	"fmt"
+	"log"
 	"os"
+	"regexp"
+	"strings"
 )
 
 // Validates that the input file is a real file (and not a directory)
@@ -33,4 +38,45 @@ func isFileValid(fileName string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+// validates whether  the month parameter has the correct format ("YYYY-MM" or "latest")
+func isValidMonth(month string, isVerbose bool) bool {
+	if month == "" {
+		if isVerbose {
+			fmt.Print("Empty month\n")
+		}
+		return false
+	}
+	if strings.ToUpper(month) == "LATEST" {
+		return true
+	}
+
+	regexpMonth := regexp.MustCompile(`20[12][0-9]-(0[1-9]|1[0-2])`)
+	if !regexpMonth.MatchString(month) {
+		if isVerbose {
+			fmt.Printf("Supplied data (%s) is not in a valid month format. Should be \"YYYY-MM\" and later than 2010\n", month)
+		}
+		return false
+	}
+
+	return true
+}
+
+// Write the string slice to a file formatted as a CSV
+func writeCSVtoFile(outputFileName string, csv_output_slice [][]string) {
+	//Open output file
+	out, err := os.Create(outputFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+
+	//Write the collected data as a CSV file
+	csv_out := csv.NewWriter(out)
+	write_err := csv_out.WriteAll(csv_output_slice)
+	if write_err != nil {
+		log.Fatal(err)
+	}
+	csv_out.Flush()
 }

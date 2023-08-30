@@ -26,7 +26,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -45,9 +44,6 @@ type totalized_record struct {
 	User string //Submitter name
 	Pr   int    //Number of PRs
 }
-
-//TODO: compute a reference date related default output filename
-
 
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
@@ -84,20 +80,29 @@ the list (resulting in more thant the specified number of top users).
 	Run: func(cmd *cobra.Command, args []string) {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
-		
+
+		// Check input file
 		if !checkFile(args[0], isSilent) {
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
 		}
 
-		if(outputFileName == "top-submitters_YYYY-MM.csv") {
-			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
-		}
-
-		if !extractData(args[0], outputFileName, topSize, endMonth, period, isVerboseExtract) {
+		// Extract the data (with no offset)
+		result, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, isVerboseExtract)
+		if !result {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
+
+		// write the extracted data as a file
+		if outputFileName == "top-submitters_YYYY-MM.csv" {
+			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
+		}
+		if isVerboseExtract {
+			fmt.Printf("Writing extraction to \"%s\"\n\n", outputFileName)
+		}
+		writeCSVtoFile(outputFileName, csv_output_slice)
+
 	},
 }
 
@@ -114,17 +119,18 @@ func init() {
 	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
 
-// Extracts the top submitters for a given period and writes it to a file
-func extractData(inputFilename string, outputFilename string, topSize int, endMonth string, period int, isVerboseExtract bool) bool {
+// Extracts the top submitters for a given period and writes it to a file.
+// Offset defines the number of months before the specified endMonth the extraction must be done (needed for the COMPARE command).
+func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, isVerboseExtract bool) (result bool, outputSlice [][]string) {
 	if isVerboseExtract {
-		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n  and writing them to \"%s\"\n\n", inputFilename, topSize, period, outputFilename)
+		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n\n", inputFilename, topSize, period)
 	}
 
 	//At this stage of the processing, we assume that the input file is correctly formatted
 	f, err := os.Open(inputFilename)
 	if err != nil {
 		log.Printf("Unable to read input file "+inputFilename+"\n", err)
-		return false
+		return false, nil
 	}
 	defer f.Close()
 
@@ -132,15 +138,15 @@ func extractData(inputFilename string, outputFilename string, topSize int, endMo
 	records, err := r.ReadAll()
 	if err != nil {
 		log.Printf("Unexpected error loading"+inputFilename+"\n", err)
-		return false
+		return false, nil
 	}
 
-	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period)
+	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period, offset)
 
 	if strings.ToUpper(endMonth) != "LATEST" {
 		if endMonth != mostRecentDate {
 			log.Printf("Unexpected error computing boundaries (\"%s\" != \"%s\"\n", endMonth, mostRecentDate)
-			return false
+			return false, nil
 		}
 	}
 
@@ -205,44 +211,33 @@ func extractData(inputFilename string, outputFilename string, topSize int, endMo
 		}
 	}
 
-	//Open output file
-	out, err := os.Create(outputFilename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
-
-	//Write the collected data as a CSV file
-	csv_out := csv.NewWriter(out)
-	write_err := csv_out.WriteAll(csv_output_slice)
-	if write_err != nil {
-		log.Fatal(err)
-	}
-	csv_out.Flush()
-
-	return true
+	return true, csv_output_slice
 }
 
-// Based on the number of months requested, computes the start/end column and associated date for the given dataset
-func getBoundaries(records [][]string, endMonthStr string, period int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+// Based on the number of months requested, computes the start/end column and associated date for the given dataset.
+// Offset defines the number of months before the specified endMonth the extraction must be done
+func getBoundaries(records [][]string, endMonthStr string, period int, offset int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+	isWithOffset := (offset != 0)
 	nbrOfColumns := len(records[0])
+
 	if strings.ToUpper(endMonthStr) == "LATEST" {
 		endColumn = nbrOfColumns - 1
 	} else {
-		// Search the requested end month. If not found, reset to "latest"
-		found := false
-		for i := 0; i < nbrOfColumns; i++ {
-			if records[0][i] == endMonthStr {
-				endColumn = i
-				found = true
-				break
-			}
-		}
-		if !found {
+		// Search the requested end month.
+		endColumn = searchStringMonth(records[0], endMonthStr)
+		//If not found, reset to "latest"
+		if endColumn == -1 {
 			fmt.Printf("Warning: %s not found in dataset, reverting to latest available month\n", endMonthStr)
 			endColumn = nbrOfColumns - 1
 		}
+	}
 
+	if isWithOffset {
+		endColumn = endColumn - offset
+		if endColumn <= 0 {
+			fmt.Printf("FATAL: requested offset-ted end period not available.\n")
+			return 0, 0, "", ""
+		}
 	}
 
 	if period >= nbrOfColumns {
@@ -254,31 +249,22 @@ func getBoundaries(records [][]string, endMonthStr string, period int) (startCol
 	} else {
 		startColumn = (endColumn - period) + 1
 	}
+
 	startMonth = records[0][startColumn]
 	endMonth = records[0][endColumn]
 
 	return startColumn, endColumn, startMonth, endMonth
 }
 
-// validates whether  the month parameter has the correct format ("YYYY-MM" or "latest")
-func isValidMonth(month string, isVerbose bool) bool {
-	if month == "" {
-		if isVerbose {
-			fmt.Print("Empty month\n")
+// Searches the loaded records for the request month string
+func searchStringMonth(headerRecords []string, endMonthStr string) (endColumn int) {
+	nbrOfColumns := len(headerRecords)
+	endColumn = -1 //not found value
+	for i := 0; i < nbrOfColumns; i++ {
+		if headerRecords[i] == endMonthStr {
+			endColumn = i
+			break
 		}
-		return false
 	}
-	if strings.ToUpper(month) == "LATEST" {
-		return true
-	}
-
-	regexpMonth := regexp.MustCompile(`20[12][0-9]-(0[1-9]|1[0-2])`)
-	if !regexpMonth.MatchString(month) {
-		if isVerbose {
-			fmt.Printf("Supplied data (%s) is not in a valid month format. Should be \"YYYY-MM\" and later than 2010\n", month)
-		}
-		return false
-	}
-
-	return true
+	return endColumn
 }
