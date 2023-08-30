@@ -107,6 +107,26 @@ func Test_getBoundaries(t *testing.T) {
 			args{records: records_2, endMonthStr: "latest", months: 12, offset: 0},
 			1, 2, "2022-01", "2022-02",
 		},
+		{
+			"Normal case with offset",
+			args{records: records_1, endMonthStr: "latest", months: 12, offset: 1},
+			4, 15, "2022-04", "2023-03",
+		},
+		{
+			"Normal case with endMonth and offset",
+			args{records: records_1, endMonthStr: "2023-02", months: 6, offset: 1},
+			8, 13, "2022-08", "2023-01",
+		},
+		{
+			"endMonth and offset out od bound",
+			args{records: records_1, endMonthStr: "2023-02", months: 6, offset: 16},
+			0, 0, "", "",
+		},
+		{
+			"offset with latest out of dataset",
+			args{records: records_1, endMonthStr: "latest", months: 12, offset: 16},
+			0, 0, "", "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

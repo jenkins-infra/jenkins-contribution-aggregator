@@ -45,8 +45,6 @@ type totalized_record struct {
 	Pr   int    //Number of PRs
 }
 
-//TODO: compute a reference date related default output filename
-
 // extractCmd represents the extract command
 var extractCmd = &cobra.Command{
 	Use:   "extract [input file]",
@@ -121,8 +119,8 @@ func init() {
 	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
 
-// Extracts the top submitters for a given period and writes it to a file
-// Offset defines the number of months before the specified endMonth the extraction must be done (needed for the COMPARE command)
+// Extracts the top submitters for a given period and writes it to a file.
+// Offset defines the number of months before the specified endMonth the extraction must be done (needed for the COMPARE command).
 func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, isVerboseExtract bool) (result bool, outputSlice [][]string) {
 	if isVerboseExtract {
 		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n\n", inputFilename, topSize, period)
@@ -216,26 +214,30 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 	return true, csv_output_slice
 }
 
-// Based on the number of months requested, computes the start/end column and associated date for the given dataset
+// Based on the number of months requested, computes the start/end column and associated date for the given dataset.
+// Offset defines the number of months before the specified endMonth the extraction must be done
 func getBoundaries(records [][]string, endMonthStr string, period int, offset int) (startColumn int, endColumn int, startMonth string, endMonth string) {
+	isWithOffset := (offset != 0)
 	nbrOfColumns := len(records[0])
+
 	if strings.ToUpper(endMonthStr) == "LATEST" {
 		endColumn = nbrOfColumns - 1
 	} else {
-		// Search the requested end month. If not found, reset to "latest"
-		found := false
-		for i := 0; i < nbrOfColumns; i++ {
-			if records[0][i] == endMonthStr {
-				endColumn = i
-				found = true
-				break
-			}
-		}
-		if !found {
+		// Search the requested end month.
+		endColumn = searchStringMonth(records[0], endMonthStr)
+		//If not found, reset to "latest"
+		if endColumn == -1 {
 			fmt.Printf("Warning: %s not found in dataset, reverting to latest available month\n", endMonthStr)
 			endColumn = nbrOfColumns - 1
 		}
+	}
 
+	if isWithOffset {
+		endColumn = endColumn - offset
+		if endColumn <= 0 {
+			fmt.Printf("FATAL: requested offset-ted end period not available.\n")
+			return 0, 0, "", ""
+		}
 	}
 
 	if period >= nbrOfColumns {
@@ -247,8 +249,22 @@ func getBoundaries(records [][]string, endMonthStr string, period int, offset in
 	} else {
 		startColumn = (endColumn - period) + 1
 	}
+
 	startMonth = records[0][startColumn]
 	endMonth = records[0][endColumn]
 
 	return startColumn, endColumn, startMonth, endMonth
+}
+
+// Searches the loaded records for the request month string
+func searchStringMonth(headerRecords []string, endMonthStr string) (endColumn int) {
+	nbrOfColumns := len(headerRecords)
+	endColumn = -1 //not found value
+	for i := 0; i < nbrOfColumns; i++ {
+		if headerRecords[i] == endMonthStr {
+			endColumn = i
+			break
+		}
+	}
+	return endColumn
 }
