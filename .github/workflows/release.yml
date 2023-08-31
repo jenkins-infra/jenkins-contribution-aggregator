@@ -23,4 +23,4 @@ jobs:
         args: release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # HOMEBREW: ${{ secrets.HOMEBREW }}
+        HOMEBREW: ${{ secrets.HOMEBREW }}
