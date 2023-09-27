@@ -33,4 +33,9 @@ for a given month, are labeled as `"MM-YYYY"`. The items are separated by a comm
 
 The contributor name must be entered between quotes. The number of PR is a plain integer number.
 
+## Installation
 
+For MacOS users, `homebrew` is the easiest installation method.
+
+- add the Homebrew tap with `brew tap jmMeessen/tap`.
+- install the application with `brew install jenkins-top-submitters`.
