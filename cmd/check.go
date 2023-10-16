@@ -159,8 +159,10 @@ func checkFile(fileName string, isSilent bool) bool {
 			//check the GitHub user (first columns)
 			if ii == 0 {
 				if !(len(column) < 40 && len(column) > 0 && name_exp.MatchString(column)) {
-					fmt.Printf("Submitter \"%s\" at line %d does not follow GitHub rules\n", column, i)
-					return false
+					if column != "deleted_user" {
+						fmt.Printf("User \"%s\" at line %d does not follow GitHub rules\n", column, i)
+						return false
+					}
 				}
 			} else {
 				// check the other columns is an integer (we don't check the sign)
