@@ -58,6 +58,14 @@ func Test_checkFile(t *testing.T) {
 			false,
 		},
 		{
+			"deleted user case",
+			args{
+				fileName: "../test_data/deleted_user_case.csv",
+				isSilent: false,
+			},
+			true,
+		},
+		{
 			"non integer data value",
 			args{
 				fileName: "../test_data/bad_data_value.csv",
