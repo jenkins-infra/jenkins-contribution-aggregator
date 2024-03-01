@@ -108,9 +108,8 @@ the list (resulting in more thant the specified number of top users).
 			fmt.Printf("Writing extraction to \"%s\" %s\n\n", outputFileName, fileTypeText)
 		}
 
-		//TODO: make writing per requested output
-		if isMDoutput {
-			//TODO: process markdown output
+			if isMDoutput {
+			//TODO: generate markdown output
 		} else {
 			writeCSVtoFile(outputFileName, csv_output_slice)
 		}

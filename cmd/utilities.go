@@ -92,3 +92,17 @@ func isWithMDfileExtension(filename string) bool {
 		return false
 	}
 }
+
+//Writes the data as Markdown  
+func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string){
+	//Open output file
+	out, err := os.Create(outputFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer out.Close()
+
+	fmt.Fprintf(out,"# %s \n", "# Extract")
+
+
+}

@@ -22,7 +22,13 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_isFileValid(t *testing.T) {
@@ -182,4 +188,164 @@ func Test_isWithMDfileExtension(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_writeMarkdownFile(t *testing.T){
+		// Setup environment
+		tempDir := t.TempDir()
+		//FIXME: extention of duplicate File is forced as CSV
+		goldenMarkdownFilename, err := duplicateFile("../test_data/Reference_extract_output.md", tempDir)
+	
+		assert.NoError(t, err, "Unexpected File duplication error")
+		assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate test file")
+
+		// Setup input data
+		testOutputFilename := tempDir + "markdown_output.md"
+
+		// Execute function under test
+		writeDataAsMarkdown(testOutputFilename,nil)
+
+		// result validation
+		assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
+
+// ------------------------------
+//
+// Test Utilities
+//
+// ------------------------------
+
+// duplicate test file as a temporary file.
+// The temporary directory should be created in the calling test so that it gets cleaned at test completion.
+func duplicateFile(originalFileName, targetDir string) (tempFileName string, err error) {
+
+	//Check the status and size of the original file
+	sourceFileStat, err := os.Stat(originalFileName)
+	if err != nil {
+		return "", err
+	}
+	if !sourceFileStat.Mode().IsRegular() {
+		return "", fmt.Errorf("%s is not a regular file", originalFileName)
+	}
+	sourceFileSize := sourceFileStat.Size()
+
+	//Open the original file
+	source, err := os.Open(originalFileName)
+	if err != nil {
+		return "", err
+	}
+	defer source.Close()
+
+	//FIXME: preserve the extention
+
+	// generate temporary file name in temp directory
+	file, err := os.CreateTemp(targetDir, "testData.*.csv")
+	if err != nil {
+		return "", err
+	}
+	tempFileName = file.Name()
+
+	// create the new file duplication
+	destination, err := os.Create(tempFileName)
+	if err != nil {
+		return "", err
+	}
+	defer destination.Close()
+
+	// Do the actual copy
+	bytesCopied, err := io.Copy(destination, source)
+	if err != nil {
+		return tempFileName, err
+	}
+	if bytesCopied != sourceFileSize {
+		return tempFileName, fmt.Errorf("Source and destination file size do not match after copy (%s is %d bytes and %s is %d bytes", originalFileName, sourceFileSize, tempFileName, bytesCopied)
+	}
+
+	// All went well
+	return tempFileName, nil
+}
+
+func isFileEquivalent(tempFileName, goldenFileName string) bool {
+
+	//FIXME: change this to an error return instead of boolean return
+
+	// Is the size the same
+	tempFileSize := getFileSize(tempFileName)
+	goldenFileSize := getFileSize(goldenFileName)
+
+	if tempFileSize == 0 || goldenFileSize == 0 {
+		fmt.Printf("0 byte file length\n")
+		return false
+	}
+
+	if tempFileSize != goldenFileSize {
+		fmt.Printf("Files are of different sizes: found %d bytes while expecting reference %d bytes \n", tempFileSize, goldenFileSize)
+		return false
+	}
+
+	// load both files
+	err, tempFile_List := loadFileToTest(tempFileName)
+	if err != nil {
+		fmt.Printf("Unexpected error loading %s : %v \n", tempFileName, err)
+		return false
+	}
+
+	err, goldenFile_List := loadFileToTest(goldenFileName)
+	if err != nil {
+		fmt.Printf("Unexpected error loading %s : %v \n", goldenFileName, err)
+		return false
+	}
+
+	//Compare the two lists
+	for index, line := range tempFile_List {
+		if line != goldenFile_List[index] {
+			fmt.Printf("Compare failure: line %d do not match\n", index)
+			return false
+		}
+	}
+
+	//If we reached this, we are all good
+	return true
+}
+
+// load input file
+func loadFileToTest(fileName string) (error, []string) {
+
+	f, err := os.Open(fileName)
+	if err != nil {
+		return fmt.Errorf("Unable to read input file %s: %v\n", fileName, err), nil
+	}
+	defer f.Close()
+
+	var loadedFile []string
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		loadedFile = append(loadedFile, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("Error loading \"%s\": %v", fileName, err), nil
+	}
+
+	if len(loadedFile) <= 1 {
+		return fmt.Errorf("Error: \"%s\" seems empty. Retrieved %d lines.", fileName, len(loadedFile)), nil
+	}
+
+	return nil, loadedFile
+}
+
+// Gets the size of a file
+func getFileSize(fileName string) int64 {
+	tempFileStat, err := os.Stat(fileName)
+	if err != nil {
+		fmt.Printf("Unexpected error getting details of %s: %v\n", fileName, err)
+		return 0
+	}
+	if !tempFileStat.Mode().IsRegular() {
+		fmt.Printf("%s is not a regular file\n", fileName)
+		return 0
+	}
+	return tempFileStat.Size()
 }
