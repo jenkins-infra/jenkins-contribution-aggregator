@@ -94,15 +94,26 @@ the list (resulting in more thant the specified number of top users).
 			os.Exit(1)
 		}
 
-		// write the extracted data as a file
+		// If the default value is specified, update that default with the month being used for the calculation
 		if outputFileName == "top-submitters_YYYY-MM.csv" {
 			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
 		}
-		if isVerboseExtract {
-			fmt.Printf("Writing extraction to \"%s\"\n\n", outputFileName)
-		}
-		writeCSVtoFile(outputFileName, csv_output_slice)
+		isMDoutput := isWithMDfileExtension(outputFileName)
 
+		if isVerboseExtract {
+			fileTypeText := "(CSV format)"
+			if isMDoutput {
+				fileTypeText = "(Markdown format)"
+			}
+			fmt.Printf("Writing extraction to \"%s\" %s\n\n", outputFileName, fileTypeText)
+		}
+
+		//TODO: make writing per requested output
+		if isMDoutput {
+			//TODO: process markdown output
+		} else {
+			writeCSVtoFile(outputFileName, csv_output_slice)
+		}
 	},
 }
 
@@ -111,7 +122,7 @@ func init() {
 	rootCmd.AddCommand(extractCmd)
 
 	// definition of flags and configuration settings.
-	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name.")
+	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name. Using the \".md\" extension will generate a markdown file ")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")

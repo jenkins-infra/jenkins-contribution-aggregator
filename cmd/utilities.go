@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -79,4 +80,15 @@ func writeCSVtoFile(outputFileName string, csv_output_slice [][]string) {
 		log.Fatal(err)
 	}
 	csv_out.Flush()
+}
+
+// returns true if the file extention is .md.
+// It returns false in other cases, thus assuming a CSV output
+func isWithMDfileExtension(filename string) bool {
+	extension := filepath.Ext(filename)
+	if strings.ToLower(extension) == ".md" {
+		return true
+	} else {
+		return false
+	}
 }

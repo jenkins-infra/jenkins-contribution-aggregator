@@ -139,3 +139,47 @@ func Test_validateMonth(t *testing.T) {
 		})
 	}
 }
+
+func Test_isWithMDfileExtension(t *testing.T) {
+	type args struct {
+		filename string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			"Markdown extension",
+			args{filename: "myfile.md"},
+			true,
+		},
+		{
+			"Markdown extension (mixed case)",
+			args{filename: "myfile.mD"},
+			true,
+		},
+		{
+			"CSV extension",
+			args{filename: "myfile.csv"},
+			false,
+		},
+		{
+			"no extension",
+			args{filename: "myfile"},
+			false,
+		},
+		{
+			"just the dot",
+			args{filename: "myfile."},
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isWithMDfileExtension(tt.args.filename); got != tt.want {
+				t.Errorf("isWithMDfileExtension() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
