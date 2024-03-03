@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -190,25 +191,23 @@ func Test_isWithMDfileExtension(t *testing.T) {
 	}
 }
 
-func Test_writeMarkdownFile(t *testing.T){
-		// Setup environment
-		tempDir := t.TempDir()
-		//FIXME: extention of duplicate File is forced as CSV
-		goldenMarkdownFilename, err := duplicateFile("../test_data/Reference_extract_output.md", tempDir)
-	
-		assert.NoError(t, err, "Unexpected File duplication error")
-		assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate test file")
+func Test_writeMarkdownFile(t *testing.T) {
+	// Setup environment
+	tempDir := t.TempDir()
+	goldenMarkdownFilename, err := duplicateFile("../test_data/Reference_extract_output.md", tempDir)
 
-		// Setup input data
-		testOutputFilename := tempDir + "markdown_output.md"
+	assert.NoError(t, err, "Unexpected File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate test file")
 
-		// Execute function under test
-		writeDataAsMarkdown(testOutputFilename,nil)
+	// Setup input data
+	testOutputFilename := tempDir + "markdown_output.md"
 
-		// result validation
-		assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	// Execute function under test
+	writeDataAsMarkdown(testOutputFilename, nil)
+
+	// result validation
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
-
 
 // ------------------------------
 //
@@ -237,10 +236,11 @@ func duplicateFile(originalFileName, targetDir string) (tempFileName string, err
 	}
 	defer source.Close()
 
-	//FIXME: preserve the extention
+	//Get the original file's extension
+	originalFileExtension := filepath.Ext(originalFileName)
 
 	// generate temporary file name in temp directory
-	file, err := os.CreateTemp(targetDir, "testData.*.csv")
+	file, err := os.CreateTemp(targetDir, "testData.*"+originalFileExtension)
 	if err != nil {
 		return "", err
 	}
