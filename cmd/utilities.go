@@ -94,6 +94,7 @@ func isWithMDfileExtension(filename string) bool {
 	}
 }
 
+//TODO: externalize the header creation
 // Writes the data as Markdown
 func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string) {
 	//Open output file
@@ -103,6 +104,17 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string) {
 	}
 	defer f.Close()
 	out := bufio.NewWriter(f)
+
+	//TODO: how many columns, length of longest element in column
+// Sample
+// | Item              | In Stock | Price |
+// | :---------------- | :------: | ----: |
+// | Python Hat        |   True   | 23.99 |
+// | SQL Hat           |   True   | 23.99 |
+// | Codecademy Tee    |  False   | 19.99 |
+// | Codecademy Hoodie |  False   | 42.99 |
+
+//TODO: does the first line of the slice contain the columns headings ?
 
 	fmt.Fprintf(out, "%s\n", "# Extract")
 	fmt.Fprintf(out, " \n")
