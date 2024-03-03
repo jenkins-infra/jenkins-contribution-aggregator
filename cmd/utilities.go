@@ -23,6 +23,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
@@ -96,13 +97,15 @@ func isWithMDfileExtension(filename string) bool {
 //Writes the data as Markdown  
 func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string){
 	//Open output file
-	out, err := os.Create(outputFileName)
+	f, err := os.Create(outputFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer out.Close()
+	defer f.Close()
+	out := bufio.NewWriter(f)
 
-	fmt.Fprintf(out,"# %s \n", "# Extract")
-
-
+	fmt.Fprintf(out,"%s\n", "# Extract")
+	fmt.Fprintf(out," \n")
+	fmt.Fprintf(out," \n")
+	out.Flush()
 }
