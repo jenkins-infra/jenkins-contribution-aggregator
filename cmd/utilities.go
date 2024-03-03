@@ -124,8 +124,8 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, in
 			isHeaderUnderline = true
 		}
 
-		writeBuffer := "| "
-		underlineBuffer := "| "
+		writeBuffer := "|"
+		underlineBuffer := "|"
 		for columnNbr, data := range dataLine {
 			//Check whether the value is numerical (we don't treat the case of float data)
 			_, atoi_err := strconv.Atoi(data)
@@ -146,10 +146,10 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, in
 				} else {
 					headerUnderline = strings.Repeat("-", width_slice[columnNbr]-1) + ":"
 				}
-				underlineBuffer = underlineBuffer + headerUnderline + " |"
+				underlineBuffer = underlineBuffer + " " + headerUnderline + " |"
 			}
 
-			formattedData := fmt.Sprintf("%*s", exact_width, data)
+			formattedData := fmt.Sprintf(" %*s", exact_width, data)
 			writeBuffer = writeBuffer + formattedData + " |"
 		}
 		if isHeaderUnderline {

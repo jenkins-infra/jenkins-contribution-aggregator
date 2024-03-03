@@ -202,7 +202,7 @@ func Test_writeMarkdownFile(t *testing.T) {
 
 	// Setup input data
 	testOutputFilename := tempDir + "markdown_output.md"
-	introductionText := "# Extract"
+	introductionText := "# Extract\n"
 	data := [][]string{
 		{"Submitter", "Total_PRs"},
 		{"basil", "1245"},
