@@ -196,6 +196,8 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 	current_total := 0
 	isListComplete := false
 
+	//FIXME: is header line correctly handled ?
+
 	var csv_output_slice [][]string
 	header_row := []string{"Submitter", "Total_PRs"}
 	csv_output_slice = append(csv_output_slice, header_row)

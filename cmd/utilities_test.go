@@ -27,6 +27,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -201,9 +202,25 @@ func Test_writeMarkdownFile(t *testing.T) {
 
 	// Setup input data
 	testOutputFilename := tempDir + "markdown_output.md"
+	introductionText := "# Extract"
+	data := [][]string{
+		{"Submitter", "Total_PRs"},
+		{"basil", "1245"},
+		{"MarkEWaite", "1150"},
+		{"lemeurherve", "939"},
+		{"NotMyFault", "926"},
+		{"dduportal", "859"},
+		{"jonesbusy", "415"},
+		{"jglick", "378"},
+		{"smerle33", "353"},
+		{"timja", "250"},
+		{"uhafner", "215"},
+		{"gounthar", "208"},
+		{"mawinter69", "179"},
+		{"daniel-beck", "164"}}
 
 	// Execute function under test
-	writeDataAsMarkdown(testOutputFilename, nil)
+	writeDataAsMarkdown(testOutputFilename, data, introductionText)
 
 	// result validation
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
@@ -348,4 +365,68 @@ func getFileSize(fileName string) int64 {
 		return 0
 	}
 	return tempFileStat.Size()
+}
+
+func Test_get_columnsWidth(t *testing.T) {
+	type args struct {
+		output_data_slice [][]string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    []int
+		wantErr bool
+	}{
+		{
+			"Happy case",
+			args{
+				[][]string{
+					{"aaa aaa", "12", "ccccccc"},
+					{"aaa aaa aa", "124", "cccccccccc"},
+					{"aaa", "12", "cccccccccc"},
+					{"aaa", "1024", "cccccccccccc"},
+				},
+			},
+			[]int{10, 4, 12},
+			false,
+		},
+		{
+			"empty field",
+			args{
+				[][]string{
+					{"aaa aaa", "12", ""},
+					{"aaa aaa aa", "124", "cccccccccc"},
+					{"aaa", "12", "cccccccccc"},
+					{"aaa", "1024", "cccccccccccc"},
+				},
+			},
+			[]int{10, 4, 12},
+			false,
+		},
+		{
+			"Column number mismatch",
+			args{
+				[][]string{
+					{"aaa aaa", "12", ""},
+					{"aaa aaa aa", "124"},
+					{"aaa", "12", "cccccccccc"},
+					{"aaa", "1024", "cccccccccccc"},
+				},
+			},
+			nil,
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := get_columnsWidth(tt.args.output_data_slice)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("get_columnsWidth() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("get_columnsWidth() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
