@@ -24,7 +24,6 @@ package cmd
 import (
 	"bytes"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -196,16 +195,26 @@ func Test_extractData(t *testing.T) {
 }
 
 func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
+	// Setup test environment
+	tempDir := t.TempDir()
+	testOutputFilename := tempDir + "extract_markdown_output.md"
+	goldenMarkdownFilename, err := duplicateFile("../test_data/extract_reference_output.md", tempDir)
+
+	assert.NoError(t, err, "Unexpected Golden File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
+
+	// setup the command line
 	actual := new(bytes.Buffer)
 	rootCmd.SetOut(actual)
 	rootCmd.SetErr(actual)
-	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--out=../extract.md"})
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--out=" + testOutputFilename})
+
+	// Execute the module under test
 	error := rootCmd.Execute()
 
-	assert.NoError(t, error, "Unexpected error")
-
-	//Error is expected
-	expectedMsg := "Error: invalid excluded user list => Unable to read input file nonExistingFile.txt: open nonExistingFile.txt: no such file or directory"
-	lines := strings.Split(actual.String(), "\n")
-	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
+	// Check the results
+	assert.NoError(t, error, "Unexpected failure")
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
+
+//TODO: integration test for CSV output
