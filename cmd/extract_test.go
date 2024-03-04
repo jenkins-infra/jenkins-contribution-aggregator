@@ -197,7 +197,7 @@ func Test_extractData(t *testing.T) {
 	}
 }
 
-func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
+func Test_ExecuteSubmittersExtractToMarkdown_integrationTest(t *testing.T) {
 	// Setup test environment
 	tempDir := t.TempDir()
 	testOutputFilename := tempDir + "extract_markdown_output.md"
@@ -219,6 +219,30 @@ func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
 	assert.NoError(t, error, "Unexpected failure")
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
+
+func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
+	// Setup test environment
+	tempDir := t.TempDir()
+	testOutputFilename := tempDir + "extract_markdown_output.md"
+	goldenMarkdownFilename, err := duplicateFile("../test_data/extract-commenters_reference_output.md", tempDir)
+
+	assert.NoError(t, err, "Unexpected Golden File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
+
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--type=commenters", "--out=" + testOutputFilename})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	// Check the results
+	assert.NoError(t, error, "Unexpected failure")
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
 
 func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
 	// setup the command line

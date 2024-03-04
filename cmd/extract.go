@@ -143,7 +143,7 @@ the list (resulting in more thant the specified number of top users).
 			}
 			if inputType == InputTypeCommenters {
 				introduction = "# Top Commenters\n"
-				buffer := fmt.Sprintf("\nExtraction of the %d top commenters (non-bot PR commenters) \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
+				buffer := fmt.Sprintf("\nExtraction of the %d top (non-bot) commenters \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
 				introduction = introduction + buffer
 			}
 			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction)
