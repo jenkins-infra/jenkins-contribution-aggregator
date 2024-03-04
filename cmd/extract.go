@@ -88,21 +88,34 @@ the list (resulting in more thant the specified number of top users).
 		}
 
 		// Extract the data (with no offset)
-		result, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, isVerboseExtract)
+		result, real_endDate, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
 
-		// write the extracted data as a file
+		// If the default value is specified, update that default with the month being used for the calculation
 		if outputFileName == "top-submitters_YYYY-MM.csv" {
 			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
 		}
-		if isVerboseExtract {
-			fmt.Printf("Writing extraction to \"%s\"\n\n", outputFileName)
-		}
-		writeCSVtoFile(outputFileName, csv_output_slice)
+		isMDoutput := isWithMDfileExtension(outputFileName)
 
+		if isVerboseExtract {
+			fileTypeText := "(CSV format)"
+			if isMDoutput {
+				fileTypeText = "(Markdown format)"
+			}
+			fmt.Printf("Writing extraction to \"%s\" %s\n\n", outputFileName, fileTypeText)
+		}
+
+		if isMDoutput {
+			introduction := "# Top Submitters\n"
+			buffer := fmt.Sprintf("\nExtraction of the %d top submitters (non-bot PR creators) \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
+			introduction = introduction + buffer
+			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction)
+		} else {
+			writeCSVtoFile(outputFileName, csv_output_slice)
+		}
 	},
 }
 
@@ -111,7 +124,7 @@ func init() {
 	rootCmd.AddCommand(extractCmd)
 
 	// definition of flags and configuration settings.
-	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name.")
+	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name. Using the \".md\" extension will generate a markdown file ")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
@@ -121,7 +134,7 @@ func init() {
 
 // Extracts the top submitters for a given period and writes it to a file.
 // Offset defines the number of months before the specified endMonth the extraction must be done (needed for the COMPARE command).
-func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, isVerboseExtract bool) (result bool, outputSlice [][]string) {
+func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, isVerboseExtract bool) (result bool, real_endDate string, outputSlice [][]string) {
 	if isVerboseExtract {
 		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n\n", inputFilename, topSize, period)
 	}
@@ -130,7 +143,7 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 	f, err := os.Open(inputFilename)
 	if err != nil {
 		log.Printf("Unable to read input file "+inputFilename+"\n", err)
-		return false, nil
+		return false, "", nil
 	}
 	defer f.Close()
 
@@ -138,7 +151,7 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 	records, err := r.ReadAll()
 	if err != nil {
 		log.Printf("Unexpected error loading"+inputFilename+"\n", err)
-		return false, nil
+		return false, "", nil
 	}
 
 	firstDataColumn, lastDataColumn, oldestDate, mostRecentDate := getBoundaries(records, endMonth, period, offset)
@@ -146,9 +159,12 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 	if strings.ToUpper(endMonth) != "LATEST" {
 		if endMonth != mostRecentDate {
 			log.Printf("Unexpected error computing boundaries (\"%s\" != \"%s\"\n", endMonth, mostRecentDate)
-			return false, nil
+			return false, "", nil
 		}
 	}
+
+	//We need to make that information available to caller
+	real_endDate = mostRecentDate
 
 	fmt.Printf("Accumulating data between %s and  %s (columns %d and %d)\n",
 		oldestDate, mostRecentDate, firstDataColumn, lastDataColumn)
@@ -211,7 +227,7 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 		}
 	}
 
-	return true, csv_output_slice
+	return true, real_endDate, csv_output_slice
 }
 
 // Based on the number of months requested, computes the start/end column and associated date for the given dataset.

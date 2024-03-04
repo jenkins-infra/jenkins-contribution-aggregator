@@ -23,11 +23,14 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -79,4 +82,108 @@ func writeCSVtoFile(outputFileName string, csv_output_slice [][]string) {
 		log.Fatal(err)
 	}
 	csv_out.Flush()
+}
+
+// returns true if the file extention is .md.
+// It returns false in other cases, thus assuming a CSV output
+func isWithMDfileExtension(filename string) bool {
+	extension := filepath.Ext(filename)
+	if strings.ToLower(extension) == ".md" {
+		return true
+	} else {
+		return false
+	}
+}
+
+// TODO: externalize the header creation
+// TODO: return error
+// Writes the data as Markdown
+func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, introductionText string) {
+	//Open output file
+	f, err := os.Create(outputFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	out := bufio.NewWriter(f)
+
+	width_slice, err := get_columnsWidth(output_data_slice)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//Write the intro text if present
+	if len(introductionText) > 0 {
+		fmt.Fprintf(out, "%s\n", introductionText)
+	}
+
+	for lineNumber, dataLine := range output_data_slice {
+		//Are we dealing with the title (and underline) ?
+		isHeaderUnderline := false
+		if lineNumber == 1 {
+			isHeaderUnderline = true
+		}
+
+		writeBuffer := "|"
+		underlineBuffer := "|"
+		for columnNbr, data := range dataLine {
+			//Check whether the value is numerical (we don't treat the case of float data)
+			_, atoi_err := strconv.Atoi(data)
+			exact_width := 0
+			if atoi_err != nil {
+				//not integer -> left align
+				exact_width = 0 - width_slice[columnNbr]
+			} else {
+				//Integer -> right align
+				exact_width = width_slice[columnNbr]
+			}
+
+			// We are dealing with the logic of the underline
+			headerUnderline := ""
+			if isHeaderUnderline {
+				if exact_width <= 0 {
+					headerUnderline = strings.Repeat("-", width_slice[columnNbr])
+				} else {
+					headerUnderline = strings.Repeat("-", width_slice[columnNbr]-1) + ":"
+				}
+				underlineBuffer = underlineBuffer + " " + headerUnderline + " |"
+			}
+
+			formattedData := fmt.Sprintf(" %*s", exact_width, data)
+			writeBuffer = writeBuffer + formattedData + " |"
+		}
+		if isHeaderUnderline {
+			fmt.Fprint(out, underlineBuffer+"\n")
+		}
+		fmt.Fprint(out, writeBuffer+"\n")
+	}
+
+	out.Flush()
+}
+
+// Returns a list of the maximum width of data supplied in data slice
+func get_columnsWidth(output_data_slice [][]string) (width_slice []int, err error) {
+
+	announced_nbr_columns := len(output_data_slice[0])
+	for i := 0; i < announced_nbr_columns; i++ {
+		width_slice = append(width_slice, 0)
+	}
+
+	//Walk through every line
+	for lineNbr, slice_line := range output_data_slice {
+		//Check column numbers for mismatch
+		nbr_columns := len(output_data_slice[lineNbr])
+		if nbr_columns != announced_nbr_columns {
+			err = fmt.Errorf("line #%d has %d column while expecting %d \n", lineNbr+1, nbr_columns, announced_nbr_columns)
+			return nil, err
+		}
+
+		//get the size of each data cell and update the counter slice if necessary
+		for columnNbr, data_cell := range slice_line {
+			if len(data_cell) > width_slice[columnNbr] {
+				width_slice[columnNbr] = len(data_cell)
+			}
+		}
+	}
+	return width_slice, nil
 }

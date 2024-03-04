@@ -22,8 +22,11 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var records_1 = [][]string{
@@ -157,10 +160,11 @@ func Test_extractData(t *testing.T) {
 		isVerboseExtract bool
 	}
 	tests := []struct {
-		name            string
-		args            args
-		wantResult      bool
-		wantOutputSlice [][]string
+		name             string
+		args             args
+		wantResult       bool
+		wantReal_endDate string
+		wantOutputSlice  [][]string
 	}{
 		{
 			"Happy case",
@@ -171,15 +175,17 @@ func Test_extractData(t *testing.T) {
 				period:           12,
 				isVerboseExtract: false,
 			},
-			true, resultSlice_1,
+			true, "2023-04", resultSlice_1,
 		},
-		//FIXME: these tests are too shallow to be museful
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResult, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
+			gotResult, gotReal_endDate, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
 			if gotResult != tt.wantResult {
 				t.Errorf("extractData() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+			if gotReal_endDate != tt.wantReal_endDate {
+				t.Errorf("extractData() gotReal_endDate = %v, want %v", gotReal_endDate, tt.wantReal_endDate)
 			}
 			if !reflect.DeepEqual(gotOutputSlice, tt.wantOutputSlice) {
 				t.Errorf("extractData() gotOutputSlice = %v, want %v", gotOutputSlice, tt.wantOutputSlice)
@@ -187,3 +193,28 @@ func Test_extractData(t *testing.T) {
 		})
 	}
 }
+
+func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
+	// Setup test environment
+	tempDir := t.TempDir()
+	testOutputFilename := tempDir + "extract_markdown_output.md"
+	goldenMarkdownFilename, err := duplicateFile("../test_data/extract_reference_output.md", tempDir)
+
+	assert.NoError(t, err, "Unexpected Golden File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
+
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--out=" + testOutputFilename})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	// Check the results
+	assert.NoError(t, error, "Unexpected failure")
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
+//TODO: integration test for CSV output
