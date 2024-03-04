@@ -39,6 +39,16 @@ var topSize int
 var period int
 var endMonth string
 var isVerboseExtract bool
+var argInputType string
+var inputType InputType
+
+type InputType uint8
+
+const (
+	InputTypeUnknown InputType = iota
+	InputTypeSubmitters
+	InputTypeCommenters
+)
 
 type totalized_record struct {
 	User string //Submitter name
@@ -75,6 +85,21 @@ the list (resulting in more thant the specified number of top users).
 		if !isValidMonth(endMonth, isVerboseExtract) {
 			return fmt.Errorf("Invalid month\n")
 		}
+
+		// check the input type
+		switch strings.ToLower(argInputType) {
+		case "submitters":
+			inputType = InputTypeSubmitters
+		case "commenters":
+			inputType = InputTypeCommenters
+		default:
+			inputType = InputTypeUnknown
+		}
+
+		if inputType == InputTypeUnknown {
+			return fmt.Errorf("%s is an invalid input type\n", argInputType)
+		}
+
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -88,12 +113,13 @@ the list (resulting in more thant the specified number of top users).
 		}
 
 		// Extract the data (with no offset)
-		result, real_endDate, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, isVerboseExtract)
+		result, real_endDate, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, inputType, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract data")
 			os.Exit(1)
 		}
 
+		//FIXME: change default filename when specifying another type of input
 		// If the default value is specified, update that default with the month being used for the calculation
 		if outputFileName == "top-submitters_YYYY-MM.csv" {
 			outputFileName = "top-submitters_" + strings.ToUpper(endMonth) + ".csv"
@@ -109,9 +135,17 @@ the list (resulting in more thant the specified number of top users).
 		}
 
 		if isMDoutput {
-			introduction := "# Top Submitters\n"
-			buffer := fmt.Sprintf("\nExtraction of the %d top submitters (non-bot PR creators) \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
-			introduction = introduction + buffer
+			introduction := ""
+			if inputType == InputTypeSubmitters {
+				introduction = "# Top Submitters\n"
+				buffer := fmt.Sprintf("\nExtraction of the %d top submitters (non-bot PR creators) \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
+				introduction = introduction + buffer
+			}
+			if inputType == InputTypeCommenters {
+				introduction = "# Top Commenters\n"
+				buffer := fmt.Sprintf("\nExtraction of the %d top commenters (non-bot PR commenters) \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
+				introduction = introduction + buffer
+			}
 			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction)
 		} else {
 			writeCSVtoFile(outputFileName, csv_output_slice)
@@ -125,6 +159,7 @@ func init() {
 
 	// definition of flags and configuration settings.
 	extractCmd.PersistentFlags().StringVarP(&outputFileName, "out", "o", "top-submitters_YYYY-MM.csv", "Output file name. Using the \".md\" extension will generate a markdown file ")
+	extractCmd.PersistentFlags().StringVarP(&argInputType, "type", "", "submitters", "The type of data being analyzed. Can be either \"submitters\" or \"commenters\"")
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
@@ -134,7 +169,7 @@ func init() {
 
 // Extracts the top submitters for a given period and writes it to a file.
 // Offset defines the number of months before the specified endMonth the extraction must be done (needed for the COMPARE command).
-func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, isVerboseExtract bool) (result bool, real_endDate string, outputSlice [][]string) {
+func extractData(inputFilename string, topSize int, endMonth string, period int, offset int, inputType InputType, isVerboseExtract bool) (result bool, real_endDate string, outputSlice [][]string) {
 	if isVerboseExtract {
 		fmt.Printf("Extracting from \"%s\" the %d top submitters during the last %d months\n\n", inputFilename, topSize, period)
 	}
@@ -203,7 +238,15 @@ func extractData(inputFilename string, topSize int, endMonth string, period int,
 	isListComplete := false
 
 	var csv_output_slice [][]string
-	header_row := []string{"Submitter", "Total_PRs"}
+	var header_row []string
+
+	if inputType == InputTypeSubmitters {
+		header_row = []string{"Submitter", "Total_PRs"}
+	}
+	if inputType == InputTypeCommenters {
+		header_row = []string{"Commenter", "Total_Comments"}
+	}
+
 	csv_output_slice = append(csv_output_slice, header_row)
 	for i, total_record := range new_output_slice {
 		if i < topSize {
