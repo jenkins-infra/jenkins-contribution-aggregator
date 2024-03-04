@@ -22,8 +22,12 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var records_1 = [][]string{
@@ -157,10 +161,11 @@ func Test_extractData(t *testing.T) {
 		isVerboseExtract bool
 	}
 	tests := []struct {
-		name            string
-		args            args
-		wantResult      bool
-		wantOutputSlice [][]string
+		name             string
+		args             args
+		wantResult       bool
+		wantReal_endDate string
+		wantOutputSlice  [][]string
 	}{
 		{
 			"Happy case",
@@ -171,19 +176,36 @@ func Test_extractData(t *testing.T) {
 				period:           12,
 				isVerboseExtract: false,
 			},
-			true, resultSlice_1,
+			true, "2023-04", resultSlice_1,
 		},
-		//FIXME: these tests are too shallow to be museful
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResult, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
+			gotResult, gotReal_endDate, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
 			if gotResult != tt.wantResult {
 				t.Errorf("extractData() gotResult = %v, want %v", gotResult, tt.wantResult)
+			}
+			if gotReal_endDate != tt.wantReal_endDate {
+				t.Errorf("extractData() gotReal_endDate = %v, want %v", gotReal_endDate, tt.wantReal_endDate)
 			}
 			if !reflect.DeepEqual(gotOutputSlice, tt.wantOutputSlice) {
 				t.Errorf("extractData() gotOutputSlice = %v, want %v", gotOutputSlice, tt.wantOutputSlice)
 			}
 		})
 	}
+}
+
+func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--out=../extract.md"})
+	error := rootCmd.Execute()
+
+	assert.NoError(t, error, "Unexpected error")
+
+	//Error is expected
+	expectedMsg := "Error: invalid excluded user list => Unable to read input file nonExistingFile.txt: open nonExistingFile.txt: no such file or directory"
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
