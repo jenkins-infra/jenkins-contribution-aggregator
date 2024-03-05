@@ -24,6 +24,7 @@ package cmd
 import (
 	"bytes"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -157,6 +158,7 @@ func Test_extractData(t *testing.T) {
 		endMonth         string
 		period           int
 		offset           int
+		inputType        InputType
 		isVerboseExtract bool
 	}
 	tests := []struct {
@@ -173,6 +175,7 @@ func Test_extractData(t *testing.T) {
 				topSize:          7,
 				endMonth:         "latest",
 				period:           12,
+				inputType:        InputTypeSubmitters,
 				isVerboseExtract: false,
 			},
 			true, "2023-04", resultSlice_1,
@@ -180,7 +183,7 @@ func Test_extractData(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotResult, gotReal_endDate, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.isVerboseExtract)
+			gotResult, gotReal_endDate, gotOutputSlice := extractData(tt.args.inputFilename, tt.args.topSize, tt.args.endMonth, tt.args.period, tt.args.offset, tt.args.inputType, tt.args.isVerboseExtract)
 			if gotResult != tt.wantResult {
 				t.Errorf("extractData() gotResult = %v, want %v", gotResult, tt.wantResult)
 			}
@@ -194,7 +197,7 @@ func Test_extractData(t *testing.T) {
 	}
 }
 
-func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
+func Test_ExecuteSubmittersExtractToMarkdown_integrationTest(t *testing.T) {
 	// Setup test environment
 	tempDir := t.TempDir()
 	testOutputFilename := tempDir + "extract_markdown_output.md"
@@ -207,7 +210,7 @@ func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
 	actual := new(bytes.Buffer)
 	rootCmd.SetOut(actual)
 	rootCmd.SetErr(actual)
-	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--out=" + testOutputFilename})
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--type=submitters", "--out=" + testOutputFilename})
 
 	// Execute the module under test
 	error := rootCmd.Execute()
@@ -215,6 +218,48 @@ func Test_ExecuteExtractToMarkdown_integrationTest(t *testing.T) {
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
+func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
+	// Setup test environment
+	tempDir := t.TempDir()
+	testOutputFilename := tempDir + "extract_markdown_output.md"
+	goldenMarkdownFilename, err := duplicateFile("../test_data/extract-commenters_reference_output.md", tempDir)
+
+	assert.NoError(t, err, "Unexpected Golden File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
+
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--type=commenters", "--out=" + testOutputFilename})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	// Check the results
+	assert.NoError(t, error, "Unexpected failure")
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
+
+func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--type=blaah"})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	assert.Error(t, error, "Function call should have failed")
+
+	//Error is expected
+	expectedMsg := "Error: blaah is an invalid input type"
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
 
 //TODO: integration test for CSV output
