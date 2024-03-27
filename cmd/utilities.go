@@ -84,7 +84,7 @@ func writeCSVtoFile(outputFileName string, csv_output_slice [][]string) {
 	csv_out.Flush()
 }
 
-// returns true if the file extention is .md.
+// returns true if the file extension is .md.
 // It returns false in other cases, thus assuming a CSV output
 func isWithMDfileExtension(filename string) bool {
 	extension := filepath.Ext(filename)
@@ -198,4 +198,27 @@ func CheckDir(file string) error {
 		}
 	}
 	return nil
+}
+
+// Based on the requested output filename (pivot table), builds a filename to store the history
+func generateHistoryFilename(outputFilename string, dataType InputType, isCompare bool) (historyFilename string, err error) {
+
+	//Get the path part from the output filename
+	path := filepath.Dir(outputFilename)
+
+	//Compute filename elements based on parameters
+	historyFilenameType := ""
+	if dataType == InputTypeCommenters {
+		historyFilenameType = "commenters"
+	} else {
+		historyFilenameType = "submitters"
+	}
+	extractType := ""
+	if isCompare {
+		extractType = "_evolution"
+	}
+
+	historyFilename = path + "/" + "top_" + historyFilenameType + extractType + "_fullHistory.csv"
+
+	return historyFilename, nil
 }

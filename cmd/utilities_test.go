@@ -255,6 +255,60 @@ func Test_CheckDir(t *testing.T) {
 	}
 }
 
+func Test_generateHistoryFilename(t *testing.T) {
+	type args struct {
+		outputFilename string
+		dataType       InputType
+		isCompare      bool
+	}
+	tests := []struct {
+		name                string
+		args                args
+		wantHistoryFilename string
+		wantErr             bool
+	}{
+		{
+			"Happy case - submitters",
+			args{
+				outputFilename: "output.md",
+				dataType:       InputTypeSubmitters,
+				isCompare:      false,
+			},
+			"./top_submitters_fullHistory.csv", false,
+		},
+		{
+			"Happy case - submitters - evolution",
+			args{
+				outputFilename: "output.md",
+				dataType:       InputTypeSubmitters,
+				isCompare:      true,
+			},
+			"./top_submitters_evolution_fullHistory.csv", false,
+		},
+		{
+			"Happy case - commenters - evolution - with path",
+			args{
+				outputFilename: "consolidated_data/output.md",
+				dataType:       InputTypeCommenters,
+				isCompare:      true,
+			},
+			"consolidated_data/top_commenters_evolution_fullHistory.csv", false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotHistoryFilename, err := generateHistoryFilename(tt.args.outputFilename, tt.args.dataType, tt.args.isCompare)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("generateHistoryFilename() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if gotHistoryFilename != tt.wantHistoryFilename {
+				t.Errorf("generateHistoryFilename() = %v, want %v", gotHistoryFilename, tt.wantHistoryFilename)
+			}
+		})
+	}
+}
+
 // ------------------------------
 //
 // Test Utilities
