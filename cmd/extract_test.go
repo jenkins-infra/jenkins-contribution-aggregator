@@ -261,4 +261,22 @@ func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
 	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
 
+func Test_ExecuteExtractWithInvalidOutputDir_mustFail(t *testing.T) {
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--type=submitters", "--out=./inexistant/directory/output.csv"})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	assert.Error(t, error, "Function call should have failed")
+
+	//Error is expected
+	expectedMsg := "Error: The directory of specified output file (inexistant/directory) does not exist."
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
+}
+
 //TODO: integration test for CSV output

@@ -64,7 +64,7 @@ compare it with an extraction with the same settings but with an X amount of mon
 
 		return nil
 	},
-	RunE: func(cmd *cobra.Command, args []string) error{
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
 

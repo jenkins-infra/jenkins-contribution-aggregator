@@ -102,12 +102,13 @@ the list (resulting in more thant the specified number of top users).
 
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
 
 		// Check input file
 		if !checkFile(args[0], isSilent) {
+			//FIXME: clean this => return an error instead
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
 		}
@@ -116,6 +117,7 @@ the list (resulting in more thant the specified number of top users).
 		result, real_endDate, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, inputType, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract data")
+			//FIXME: clean this => return an error instead
 			os.Exit(1)
 		}
 
@@ -134,6 +136,12 @@ the list (resulting in more thant the specified number of top users).
 			fmt.Printf("Writing extraction to \"%s\" %s\n\n", outputFileName, fileTypeText)
 		}
 
+		// Check that the output directory exists
+		dirErr := CheckDir(outputFileName)
+		if dirErr != nil {
+			return dirErr
+		}
+
 		if isMDoutput {
 			introduction := ""
 			if inputType == InputTypeSubmitters {
@@ -150,6 +158,7 @@ the list (resulting in more thant the specified number of top users).
 		} else {
 			writeCSVtoFile(outputFileName, csv_output_slice)
 		}
+		return nil
 	},
 }
 
