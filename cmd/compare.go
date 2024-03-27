@@ -144,6 +144,7 @@ func init() {
 	compareCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 	compareCmd.PersistentFlags().IntVarP(&compareWith, "compare", "c", 3, "Number of months back to compare with.")
 	compareCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
+	compareCmd.PersistentFlags().BoolVarP(&isOutputHistory, "history", "", false, "Outputs the available activity history for the top submitters")
 
 	compareCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }

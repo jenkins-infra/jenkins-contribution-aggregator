@@ -40,6 +40,7 @@ var period int
 var endMonth string
 var isVerboseExtract bool
 var argInputType string
+var isOutputHistory bool
 var inputType InputType
 
 type InputType uint8
@@ -168,6 +169,7 @@ func init() {
 	extractCmd.PersistentFlags().IntVarP(&topSize, "topSize", "t", 35, "Number of top submitters to extract.")
 	extractCmd.PersistentFlags().IntVarP(&period, "period", "p", 12, "Number of months to accumulate.")
 	extractCmd.PersistentFlags().StringVarP(&endMonth, "month", "m", "latest", "Month to extract top submitters.")
+	extractCmd.PersistentFlags().BoolVarP(&isOutputHistory, "history", "", false, "Outputs the available activity history for the top submitters")
 
 	extractCmd.PersistentFlags().BoolVarP(&isVerboseExtract, "verbose", "v", false, "Displays useful info during the extraction")
 }
