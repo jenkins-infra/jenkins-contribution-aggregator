@@ -96,7 +96,7 @@ func Test_compareExtractedData(t *testing.T) {
 	type args struct {
 		recentData [][]string
 		oldData    [][]string
-		inputType InputType
+		inputType  InputType
 	}
 	tests := []struct {
 		name                      string
@@ -181,4 +181,23 @@ func Test_ExecuteCompareWithUnknownInputType_mustFail(t *testing.T) {
 	lines := strings.Split(actual.String(), "\n")
 	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
+
+func Test_ExecuteCompareWithInvalidOutputDir_mustFail(t *testing.T) {
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"compare", "../test_data/overview.csv", "--type=submitters", "--out=./inexistant/directory/output.csv"})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	assert.Error(t, error, "Function call should have failed")
+
+	//Error is expected
+	expectedMsg := "Error: The directory of specified output file (inexistant/directory) does not exist."
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
+}
+
 //TODO: validate CSV output

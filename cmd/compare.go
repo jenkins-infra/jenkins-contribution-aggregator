@@ -64,7 +64,7 @@ compare it with an extraction with the same settings but with an X amount of mon
 
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error{
 		// When called standalone, we want to give the minimal information
 		isSilent := true
 
@@ -81,6 +81,7 @@ compare it with an extraction with the same settings but with an X amount of mon
 		result, _, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, inputType, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract data")
+			//FIXME: clean this => return an error instead
 			os.Exit(1)
 		}
 
@@ -88,6 +89,7 @@ compare it with an extraction with the same settings but with an X amount of mon
 		result, real_endDate, csv_offset_output_slice := extractData(args[0], topSize, endMonth, period, compareWith, inputType, isVerboseExtract)
 		if !result {
 			fmt.Print("Failed to extract offset-ted data")
+			//FIXME: clean this => return an error instead
 			os.Exit(1)
 		}
 
@@ -108,6 +110,12 @@ compare it with an extraction with the same settings but with an X amount of mon
 			fmt.Printf("Writing compare results to \"%s\" %s\n\n", outputFileName, fileTypeText)
 		}
 
+		// Check that the output directory exists
+		dirErr := CheckDir(outputFileName)
+		if dirErr != nil {
+			return dirErr
+		}
+
 		if isMDoutput {
 			introduction := ""
 			if inputType == InputTypeSubmitters {
@@ -126,7 +134,7 @@ compare it with an extraction with the same settings but with an X amount of mon
 		} else {
 			writeCSVtoFile(outputFileName, enrichedExtractedData)
 		}
-
+		return nil
 	},
 }
 

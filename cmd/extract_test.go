@@ -243,7 +243,6 @@ func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
-
 func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
 	// setup the command line
 	actual := new(bytes.Buffer)

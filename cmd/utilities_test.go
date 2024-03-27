@@ -226,6 +226,35 @@ func Test_writeMarkdownFile(t *testing.T) {
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
+func Test_CheckDir(t *testing.T) {
+	type args struct {
+		file string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			"Valid directory",
+			args{file: "../test_data/fle-1.txt"},
+			false,
+		},
+		{
+			"Invalid directory",
+			args{file: "../junkDir/fle-1.txt"},
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := CheckDir(tt.args.file); (err != nil) != tt.wantErr {
+				t.Errorf("CheckDir() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 // ------------------------------
 //
 // Test Utilities
