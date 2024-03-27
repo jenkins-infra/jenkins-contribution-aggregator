@@ -108,17 +108,13 @@ the list (resulting in more thant the specified number of top users).
 
 		// Check input file
 		if !checkFile(args[0], isSilent) {
-			//FIXME: clean this => return an error instead
-			fmt.Print("Invalid input file.")
-			os.Exit(1)
+			return fmt.Errorf("Invalid input file.")
 		}
 
 		// Extract the data (with no offset)
 		result, real_endDate, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, inputType, isVerboseExtract)
 		if !result {
-			fmt.Print("Failed to extract data")
-			//FIXME: clean this => return an error instead
-			os.Exit(1)
+			return fmt.Errorf("Failed to extract data")
 		}
 
 		//FIXME: change default filename when specifying another type of input

@@ -80,17 +80,13 @@ compare it with an extraction with the same settings but with an X amount of mon
 		// Extract the data (with no offset)
 		result, _, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, inputType, isVerboseExtract)
 		if !result {
-			fmt.Print("Failed to extract data")
-			//FIXME: clean this => return an error instead
-			os.Exit(1)
+			return fmt.Errorf("Failed to extract data")
 		}
 
 		// Extract the data (with offset this time)
 		result, real_endDate, csv_offset_output_slice := extractData(args[0], topSize, endMonth, period, compareWith, inputType, isVerboseExtract)
 		if !result {
-			fmt.Print("Failed to extract offset-ted data")
-			//FIXME: clean this => return an error instead
-			os.Exit(1)
+			return fmt.Errorf("Failed to extract offset-ted data")
 		}
 
 		enrichedExtractedData := compareExtractedData(csv_output_slice, csv_offset_output_slice, inputType)
