@@ -201,7 +201,7 @@ func CheckDir(file string) error {
 }
 
 // Based on the requested output filename (pivot table), builds a filename to store the history
-func generateHistoryFilename(outputFilename string, dataType InputType, isCompare bool) (historyFilename string, err error) {
+func generateHistoryFilename(outputFilename string, dataType InputType, isCompare bool) (historyFilename string) {
 
 	//Get the path part from the output filename
 	path := filepath.Dir(outputFilename)
@@ -220,5 +220,5 @@ func generateHistoryFilename(outputFilename string, dataType InputType, isCompar
 
 	historyFilename = path + "/" + "top_" + historyFilenameType + extractType + "_fullHistory.csv"
 
-	return historyFilename, nil
+	return historyFilename
 }
