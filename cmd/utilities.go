@@ -224,15 +224,23 @@ func generateHistoryFilename(outputFilename string, dataType InputType, isCompar
 }
 
 // Will retrieve and write the history line for all the top users
-// FIXME: Work In Progress
 func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_output_slice [][]string) (err error) {
 	// TODO: need to mark churned or new users
-	//FIXME: check is the csv_output_slice is at least 1 record + tile long
+
+	// Check is the csv_output_slice is at least 1 record + tile long
+	if len(csv_output_slice) <= 2 {
+		return fmt.Errorf("The generated top user data seems empty.")
+	}
 
 	// Load the pivot table in memory
 	pivotRecords, loadErr := loadInputPivotTable(inputFilename)
 	if loadErr != nil {
 		return loadErr
+	}
+
+	//do we have data in the pivot table ?
+	if len(pivotRecords) <= 2 {
+		return fmt.Errorf("The pivot table (%s) seems empty.", inputFilename)
 	}
 
 	//This is a new slice that will contain the data to write
@@ -253,7 +261,6 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 		index := getIndexInPivotTable(pivotRecords, name)
 
 		//check that return value is not negative (not found)
-		//FIXME: test this case
 		if index == -1 {
 			return fmt.Errorf("Supplied name (%s) was not found in input pivot table file", name)
 		}

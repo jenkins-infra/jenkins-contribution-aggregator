@@ -261,6 +261,82 @@ func Test_writeHistoryOutput(t *testing.T) {
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
+func Test_writeHistoryOutput_notFoundUser(t *testing.T) {
+	// Setup environment
+	inputPivotTableName := "../test_data/overview.csv"
+	tempDir := t.TempDir()
+
+	// Setup input data
+	testOutputFilename := tempDir + "/history_output.csv"
+	data := [][]string{
+		{"Submitter", "Total_PRs"},
+		{"basil", "1245"},
+		{"MarkEWaite", "1150"},
+		{"lemeurherve", "939"},
+		{"NotMyFault", "926"},
+		{"dduportal", "859"},
+		{"jonesbusy", "415"},
+		{"jglick", "378"},
+		{"smerle33", "353"},
+		{"timja", "250"},
+		{"uhafner", "215"},
+		{"unknownUser", "208"},
+		{"mawinter69", "179"},
+		{"daniel-beck", "164"}}
+
+	// Execute function under test
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+
+	assert.EqualErrorf(t, writeErr, "Supplied name (unknownUser) was not found in input pivot table file", "Function under test should have failed")
+
+}
+
+func Test_writeHistoryOutput_noTopUserData(t *testing.T) {
+	// Setup environment
+	inputPivotTableName := "../test_data/overview.csv"
+	tempDir := t.TempDir()
+
+	// Setup input data
+	testOutputFilename := tempDir + "/history_output.csv"
+	data := [][]string{
+		{"Submitter", "Total_PRs"},
+	}
+
+	// Execute function under test
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+
+	assert.EqualErrorf(t, writeErr, "The generated top user data seems empty.", "Function under test should have failed")
+}
+
+func Test_writeHistoryOutput_noPivotTableData(t *testing.T) {
+	// Setup environment
+	inputPivotTableName := "../test_data/noData_overview.csv"
+	tempDir := t.TempDir()
+
+	// Setup input data
+	testOutputFilename := tempDir + "/history_output.csv"
+	data := [][]string{
+		{"Submitter", "Total_PRs"},
+		{"basil", "1245"},
+		{"MarkEWaite", "1150"},
+		{"lemeurherve", "939"},
+		{"NotMyFault", "926"},
+		{"dduportal", "859"},
+		{"jonesbusy", "415"},
+		{"jglick", "378"},
+		{"smerle33", "353"},
+		{"timja", "250"},
+		{"uhafner", "215"},
+		{"unknownUser", "208"},
+		{"mawinter69", "179"},
+		{"daniel-beck", "164"}}
+
+	// Execute function under test
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+
+	assert.EqualErrorf(t, writeErr, "The pivot table (../test_data/noData_overview.csv) seems empty.", "Function under test should have failed")
+}
+
 func Test_getIndexInPivotTable(t *testing.T) {
 	testInputSlice := [][]string{
 		{"", "month_1", "month_2", "month_3"},
