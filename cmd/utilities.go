@@ -222,3 +222,62 @@ func generateHistoryFilename(outputFilename string, dataType InputType, isCompar
 
 	return historyFilename
 }
+
+// Will retrieve and write the history line for all the top users
+// FIXME: Work In Progress
+func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_output_slice [][]string) (err error) {
+	// TODO: need to mark churned or new users
+	//FIXME: check is the csv_output_slice is at least 1 record + tile long
+
+	// Load the pivot table in memory
+	pivotRecords, loadErr := loadInputPivotTable(inputFilename)
+	if loadErr != nil {
+		return loadErr
+	}
+
+	//This is a new slice that will contain the data to write
+	var historicDataSlice [][]string
+
+	//Get the title line and add it to the output
+	historicDataSlice = append(historicDataSlice, pivotRecords[0])
+
+	for topUser_index, topUser_line := range csv_output_slice {
+
+		//We are dealing with the title line that we just want to skip
+		if topUser_index == 0 {
+			continue
+		}
+
+		//get the line index of the line containing the top user's data
+		name := topUser_line[0]
+		index := getIndexInPivotTable(pivotRecords, name)
+
+		//check that return value is not negative (not found)
+		//FIXME: test this case
+		if index == -1 {
+			return fmt.Errorf("Supplied name (%s) was not found in input pivot table file", name)
+		}
+
+		// Add the collected data
+		historicDataSlice = append(historicDataSlice, pivotRecords[index])
+	}
+	//Write the CSV
+	writeCSVtoFile(historyOutputFilename, historicDataSlice)
+
+	return nil
+}
+
+// returns the index in the pivot record's slice with the supplied name.
+// Returns -1 if not found
+func getIndexInPivotTable(pivotRecords [][]string, name string) (index int) {
+	index = -1
+
+	for indexNbr, line := range pivotRecords {
+		if line[0] == name {
+			return indexNbr
+		}
+	}
+
+	return index
+
+}
