@@ -102,21 +102,19 @@ the list (resulting in more thant the specified number of top users).
 
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// When called standalone, we want to give the minimal information
 		isSilent := true
 
 		// Check input file
 		if !checkFile(args[0], isSilent) {
-			fmt.Print("Invalid input file.")
-			os.Exit(1)
+			return fmt.Errorf("Invalid input file.")
 		}
 
 		// Extract the data (with no offset)
 		result, real_endDate, csv_output_slice := extractData(args[0], topSize, endMonth, period, 0, inputType, isVerboseExtract)
 		if !result {
-			fmt.Print("Failed to extract data")
-			os.Exit(1)
+			return fmt.Errorf("Failed to extract data")
 		}
 
 		//FIXME: change default filename when specifying another type of input
@@ -132,6 +130,12 @@ the list (resulting in more thant the specified number of top users).
 				fileTypeText = "(Markdown format)"
 			}
 			fmt.Printf("Writing extraction to \"%s\" %s\n\n", outputFileName, fileTypeText)
+		}
+
+		// Check that the output directory exists
+		dirErr := CheckDir(outputFileName)
+		if dirErr != nil {
+			return dirErr
 		}
 
 		if isMDoutput {
@@ -150,6 +154,7 @@ the list (resulting in more thant the specified number of top users).
 		} else {
 			writeCSVtoFile(outputFileName, csv_output_slice)
 		}
+		return nil
 	},
 }
 

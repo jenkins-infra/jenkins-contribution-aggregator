@@ -187,3 +187,15 @@ func get_columnsWidth(output_data_slice [][]string) (width_slice []int, err erro
 	}
 	return width_slice, nil
 }
+
+// CheckDir verifies a given path/file string actually exists. If it does not
+// then exit with an error.
+func CheckDir(file string) error {
+	path := filepath.Dir(file)
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("The directory of specified output file (%s) does not exist.", path)
+		}
+	}
+	return nil
+}
