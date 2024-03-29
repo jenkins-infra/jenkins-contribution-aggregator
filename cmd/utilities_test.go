@@ -337,6 +337,36 @@ func Test_writeHistoryOutput_noPivotTableData(t *testing.T) {
 	assert.EqualErrorf(t, writeErr, "The pivot table (../test_data/noData_overview.csv) seems empty.", "Function under test should have failed")
 }
 
+func Test_writeHistoryOutput_compareWithWrongHeader(t *testing.T) {
+	// Setup environment
+	inputPivotTableName := "../test_data/overview.csv"
+	tempDir := t.TempDir()
+
+	// Setup input data
+	testOutputFilename := tempDir + "/history_output.csv"
+	data := [][]string{
+		{"Submitter", "Total_PRs", "junkHeader"},
+		{"basil", "1245", ""},
+		{"MarkEWaite", "1150", ""},
+		{"lemeurherve", "939", ""},
+		{"NotMyFault", "926", ""},
+		{"dduportal", "859", ""},
+		{"jonesbusy", "415", ""},
+		{"jglick", "378", ""},
+		{"smerle33", "353", ""},
+		{"timja", "250", "churned", ""},
+		{"uhafner", "215", ""},
+		{"gounthar", "208", "new", ""},
+		{"mawinter69", "179", ""},
+		{"daniel-beck", "164", ""}}
+
+	// Execute function under test
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+
+	expectedErrorMessage := "COMPARE output check failure: found three columns but third one doesn't have the expected title (found \"junkHeader\" instead of \"status\")"
+	assert.EqualErrorf(t, writeErr, expectedErrorMessage, "Function under test should have failed")
+}
+
 func Test_getIndexInPivotTable(t *testing.T) {
 	testInputSlice := [][]string{
 		{"", "month_1", "month_2", "month_3"},

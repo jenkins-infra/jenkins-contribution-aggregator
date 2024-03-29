@@ -159,6 +159,7 @@ func compareExtractedData(recentData [][]string, oldData [][]string, inputType I
 		header_row = []string{"Submitter", "Total_PRs", "Status"}
 	}
 	if inputType == InputTypeCommenters {
+		//FIXME: Check inconsistant capitalisation of Status
 		header_row = []string{"Commenter", "Comments", "status"}
 	}
 

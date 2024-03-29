@@ -227,9 +227,22 @@ func generateHistoryFilename(outputFilename string, dataType InputType, isCompar
 func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_output_slice [][]string) (err error) {
 	// TODO: need to mark churned or new users
 
+	// https://medium.com/@xcoulon/3-ways-to-update-elements-in-a-slice-d5df54c9b2f8
+
 	// Check is the csv_output_slice is at least 1 record + tile long
 	if len(csv_output_slice) <= 2 {
 		return fmt.Errorf("The generated top user data seems empty.")
+	}
+
+	// Are we dealing with COMPARE type output (it has three columns)?
+	// Note: this could have been a parameter for robustness. Can be refactored later (TODO:)
+	isCompare := false
+	expectedCompareColumnTitle := "status"
+	if len(csv_output_slice[0]) == 3 {
+		isCompare = true
+		if csv_output_slice[0][2] != expectedCompareColumnTitle {
+			return fmt.Errorf("COMPARE output check failure: found three columns but third one doesn't have the expected title (found \"%s\" instead of \"%s\")",csv_output_slice[0][2],expectedCompareColumnTitle)
+		}
 	}
 
 	// Load the pivot table in memory
@@ -263,6 +276,11 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 		//check that return value is not negative (not found)
 		if index == -1 {
 			return fmt.Errorf("Supplied name (%s) was not found in input pivot table file", name)
+		}
+
+		//FIXME: are we dealing with compare output?
+		if isCompare {
+
 		}
 
 		// Add the collected data

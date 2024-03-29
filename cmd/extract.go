@@ -158,7 +158,7 @@ the list (resulting in more thant the specified number of top users).
 			writeCSVtoFile(outputFileName, csv_output_slice)
 		}
 
-		//TODO: if requested, write the history based the supplied top user slice
+		//if requested, write the history based the supplied top user slice
 		if isOutputHistory {
 			isCompare := false
 			historyOutputFilename := generateHistoryFilename(outputFileName, inputType, isCompare)
