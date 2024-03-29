@@ -84,7 +84,7 @@ func writeCSVtoFile(outputFileName string, csv_output_slice [][]string) {
 	csv_out.Flush()
 }
 
-// returns true if the file extention is .md.
+// returns true if the file extension is .md.
 // It returns false in other cases, thus assuming a CSV output
 func isWithMDfileExtension(filename string) bool {
 	extension := filepath.Ext(filename)
@@ -198,4 +198,115 @@ func CheckDir(file string) error {
 		}
 	}
 	return nil
+}
+
+// Based on the requested output filename (pivot table), builds a filename to store the history
+func generateHistoryFilename(outputFilename string, dataType InputType, isCompare bool) (historyFilename string) {
+
+	//Get the path part from the output filename
+	path := filepath.Dir(outputFilename)
+
+	//Compute filename elements based on parameters
+	historyFilenameType := ""
+	if dataType == InputTypeCommenters {
+		historyFilenameType = "commenters"
+	} else {
+		historyFilenameType = "submitters"
+	}
+	extractType := ""
+	if isCompare {
+		extractType = "_evolution"
+	}
+
+	historyFilename = path + "/" + "top_" + historyFilenameType + extractType + "_fullHistory.csv"
+
+	return historyFilename
+}
+
+// Will retrieve and write the history line for all the top users
+func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_output_slice [][]string) (err error) {
+
+	// Check is the csv_output_slice is at least 1 record + tile long
+	if len(csv_output_slice) <= 2 {
+		return fmt.Errorf("The generated top user data seems empty.")
+	}
+
+	// Are we dealing with COMPARE type output (it has three columns)?
+	// Note: this could have been a parameter for robustness. Can be refactored later (TODO:)
+	isCompare := false
+	expectedCompareColumnTitle := "status"
+	if len(csv_output_slice[0]) == 3 {
+		isCompare = true
+		if csv_output_slice[0][2] != strings.ToLower(expectedCompareColumnTitle) {
+			return fmt.Errorf("COMPARE output check failure: found three columns but third one doesn't have the expected title (found \"%s\" instead of \"%s\")", csv_output_slice[0][2], expectedCompareColumnTitle)
+		}
+	}
+
+	// Load the pivot table in memory
+	pivotRecords, loadErr := loadInputPivotTable(inputFilename)
+	if loadErr != nil {
+		return loadErr
+	}
+
+	//do we have data in the pivot table ?
+	if len(pivotRecords) <= 2 {
+		return fmt.Errorf("The pivot table (%s) seems empty.", inputFilename)
+	}
+
+	//This is a new slice that will contain the data to write
+	var historicDataSlice [][]string
+
+	//Get the title line and add it to the output
+	historicDataSlice = append(historicDataSlice, pivotRecords[0])
+
+	for topUser_index, topUser_line := range csv_output_slice {
+
+		//We are dealing with the title line that we just want to skip
+		if topUser_index == 0 {
+			continue
+		}
+
+		//get the line index of the line containing the top user's data
+		name := topUser_line[0]
+		index := getIndexInPivotTable(pivotRecords, name)
+
+		//check that return value is not negative (not found)
+		if index == -1 {
+			return fmt.Errorf("Supplied name (%s) was not found in input pivot table file", name)
+		}
+
+		// If we are dealing with a Compare output we need to update the user handle with its status
+		fullUsername := name
+		if isCompare {
+			//We need to update the name with the status (if there is one)
+			if topUser_line[2] != "" {
+				fullUsername = name + " (" + topUser_line[2] + ")"
+			}
+		}
+
+		//Update the pivot record with the (possibly) updated name
+		pivotRecords[index][0] = fullUsername
+
+		// Add the collected data
+		historicDataSlice = append(historicDataSlice, pivotRecords[index])
+	}
+	//Write the CSV
+	writeCSVtoFile(historyOutputFilename, historicDataSlice)
+
+	return nil
+}
+
+// returns the index in the pivot record's slice with the supplied name.
+// Returns -1 if not found
+func getIndexInPivotTable(pivotRecords [][]string, name string) (index int) {
+	index = -1
+
+	for indexNbr, line := range pivotRecords {
+		if line[0] == name {
+			return indexNbr
+		}
+	}
+
+	return index
+
 }

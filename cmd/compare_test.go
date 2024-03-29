@@ -200,4 +200,58 @@ func Test_ExecuteCompareWithInvalidOutputDir_mustFail(t *testing.T) {
 	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
 
+func Test_CompareExtractWithNoArgs_mustFail(t *testing.T) {
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"compare"})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	assert.Error(t, error, "Function call should have failed")
+
+	//Error is expected
+	expectedMsg := "Error: requires at least 1 arg(s), only received 0"
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
+}
+
+func Test_CompareExtractWithInvalidInputFile_mustFail(t *testing.T) {
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"compare", "nonExistantFile.csv"})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	assert.Error(t, error, "Function call should have failed")
+
+	//Error is expected
+	expectedMsg := "Error: Invalid input file"
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
+}
+
+func Test_CompareExtractWithInvalidEndMonth_mustFail(t *testing.T) {
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"compare", "../test_data/overview.csv", "-m=junkMonth"})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	assert.Error(t, error, "Function call should have failed")
+
+	//Error is expected
+	expectedMsg := "Error: \"junkMonth\" is an invalid month"
+	lines := strings.Split(actual.String(), "\n")
+	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
+}
+
 //TODO: validate CSV output
