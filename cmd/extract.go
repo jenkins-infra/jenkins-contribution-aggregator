@@ -81,10 +81,10 @@ the list (resulting in more thant the specified number of top users).
 			return err
 		}
 		if !isFileValid(args[0]) {
-			return fmt.Errorf("Invalid file\n")
+			return fmt.Errorf("Invalid input file\n")
 		}
 		if !isValidMonth(endMonth, isVerboseExtract) {
-			return fmt.Errorf("Invalid month\n")
+			return fmt.Errorf("\"%s\" is an invalid month\n", endMonth)
 		}
 
 		// check the input type
