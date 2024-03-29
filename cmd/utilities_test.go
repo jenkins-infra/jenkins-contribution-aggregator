@@ -261,6 +261,41 @@ func Test_writeHistoryOutput(t *testing.T) {
 	assert.True(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
+func Test_writeHistoryOutput_compare(t *testing.T) {
+	// Setup environment
+	inputPivotTableName := "../test_data/overview.csv"
+	tempDir := t.TempDir()
+	goldenHistoryFilename, err := duplicateFile("../test_data/historicCompare_reference.csv", tempDir)
+
+	assert.NoError(t, err, "Unexpected File duplication error")
+	assert.NotEmpty(t, goldenHistoryFilename, "Failure to duplicate test file")
+
+	// Setup input data
+	testOutputFilename := tempDir + "/history_output.csv"
+	data := [][]string{
+		{"Submitter", "Total_PRs", "status"},
+		{"basil", "1245", ""},
+		{"MarkEWaite", "1150", ""},
+		{"lemeurherve", "939", ""},
+		{"NotMyFault", "926", ""},
+		{"dduportal", "859", ""},
+		{"jonesbusy", "415", ""},
+		{"jglick", "378", ""},
+		{"smerle33", "353", ""},
+		{"timja", "250", "churned", ""},
+		{"uhafner", "215", ""},
+		{"gounthar", "208", "new", ""},
+		{"mawinter69", "179", ""},
+		{"daniel-beck", "164", ""}}
+
+	// Execute function under test
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
+
+	// result validation
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
+}
+
 func Test_writeHistoryOutput_notFoundUser(t *testing.T) {
 	// Setup environment
 	inputPivotTableName := "../test_data/overview.csv"
