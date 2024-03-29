@@ -68,7 +68,9 @@ compare it with an extraction with the same settings but with an X amount of mon
 		// When called standalone, we want to give the minimal information
 		isSilent := true
 
-		if !checkFile(args[0], isSilent) {
+		inputPivotTableName := args[0]
+
+		if !checkFile(inputPivotTableName, isSilent) {
 			fmt.Print("Invalid input file.")
 			os.Exit(1)
 		}
@@ -132,6 +134,17 @@ compare it with an extraction with the same settings but with an X amount of mon
 		} else {
 			writeCSVtoFile(outputFileName, enrichedExtractedData)
 		}
+
+		//if requested, write the history based the supplied top user slice
+		if isOutputHistory {
+			isCompare := true
+			historyOutputFilename := generateHistoryFilename(outputFileName, inputType, isCompare)
+
+			if err := writeHistoryOutput(historyOutputFilename, inputPivotTableName, enrichedExtractedData); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	},
 }

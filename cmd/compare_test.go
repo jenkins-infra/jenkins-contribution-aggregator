@@ -254,4 +254,34 @@ func Test_CompareExtractWithInvalidEndMonth_mustFail(t *testing.T) {
 	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
 
+func Test_ExecuteSubmitterCompareWithHistory_integrationTest(t *testing.T) {
+	// Setup test environment
+	tempDir := t.TempDir()
+	testOutputFilename := tempDir + "/extract_markdown_output.md"
+	expectedHistoryFilename := tempDir + "/top_submitters_evolution_fullHistory.csv"
+
+	goldenMarkdownFilename, err := duplicateFile("../test_data/compare-submitters_reference_output.md", tempDir)
+	assert.NoError(t, err, "Unexpected Golden File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
+
+	goldenHistoryFilename, err2 := duplicateFile("../test_data/historicCompare_Integration_reference.csv", tempDir)
+	assert.NoError(t, err2, "Unexpected Golden History File duplication error")
+	assert.NotEmpty(t, goldenHistoryFilename, "Failure to duplicate Golden History File")
+
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"compare", "../test_data/overview.csv", "--history", "--month=latest", "--period=12", "--topSize=35", "--compare=3", "--type=submitters", "--out=" + testOutputFilename})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	// Check the results
+	assert.NoError(t, error, "Unexpected failure")
+	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.FileExists(t, expectedHistoryFilename, "history file was not produced")
+	assert.True(t, isFileEquivalent(expectedHistoryFilename, goldenHistoryFilename))
+}
+
 //TODO: validate CSV output
