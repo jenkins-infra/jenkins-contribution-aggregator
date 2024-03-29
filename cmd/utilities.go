@@ -237,7 +237,7 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 	expectedCompareColumnTitle := "status"
 	if len(csv_output_slice[0]) == 3 {
 		isCompare = true
-		if csv_output_slice[0][2] != strings.ToLower(expectedCompareColumnTitle) {
+		if strings.ToLower(csv_output_slice[0][2]) != expectedCompareColumnTitle {
 			return fmt.Errorf("COMPARE output check failure: found three columns but third one doesn't have the expected title (found \"%s\" instead of \"%s\")", csv_output_slice[0][2], expectedCompareColumnTitle)
 		}
 	}
