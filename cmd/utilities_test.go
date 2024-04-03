@@ -223,7 +223,7 @@ func Test_writeMarkdownFile(t *testing.T) {
 	writeDataAsMarkdown(testOutputFilename, data, introductionText)
 
 	// result validation
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
 func Test_writeHistoryOutput(t *testing.T) {
@@ -258,7 +258,7 @@ func Test_writeHistoryOutput(t *testing.T) {
 	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
 
 	// result validation
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
 func Test_writeHistoryOutput_compare(t *testing.T) {
@@ -293,7 +293,7 @@ func Test_writeHistoryOutput_compare(t *testing.T) {
 	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
 
 	// result validation
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
 func Test_writeHistoryOutput_notFoundUser(t *testing.T) {
@@ -592,47 +592,46 @@ func duplicateFile(originalFileName, targetDir string) (tempFileName string, err
 	return tempFileName, nil
 }
 
-func isFileEquivalent(tempFileName, goldenFileName string) bool {
-
-	//FIXME: change this to an error return instead of boolean return
+func isFileEquivalent(tempFileName, goldenFileName string) error {
 
 	// Is the size the same
 	tempFileSize := getFileSize(tempFileName)
 	goldenFileSize := getFileSize(goldenFileName)
 
-	if tempFileSize == 0 || goldenFileSize == 0 {
-		fmt.Printf("0 byte file length\n")
-		return false
+	if tempFileSize == 0 {
+		return fmt.Errorf("%s is 0 byte long", tempFileName)
 	}
 
+	if goldenFileSize == 0 {
+		return fmt.Errorf("%s is 0 byte long", goldenFileName)
+	}
+
+	// We don't throw an error immediately to give a better hint where the files diverge
+	fileDifference := ""
 	if tempFileSize != goldenFileSize {
-		fmt.Printf("Files are of different sizes: found %d bytes while expecting reference %d bytes \n", tempFileSize, goldenFileSize)
-		return false
+		fileDifference = fmt.Sprintf("Files are of different sizes: found %d bytes while expecting reference %d bytes \n", tempFileSize, goldenFileSize)
 	}
 
 	// load both files
 	err, tempFile_List := loadFileToTest(tempFileName)
 	if err != nil {
-		fmt.Printf("Unexpected error loading %s : %v \n", tempFileName, err)
-		return false
+		return fmt.Errorf("Unexpected error loading %s : %v \n", tempFileName, err)
 	}
 
 	err, goldenFile_List := loadFileToTest(goldenFileName)
 	if err != nil {
-		fmt.Printf("Unexpected error loading %s : %v \n", goldenFileName, err)
-		return false
+		return fmt.Errorf("Unexpected error loading %s : %v \n", goldenFileName, err)
 	}
 
 	//Compare the two lists
 	for index, line := range tempFile_List {
 		if line != goldenFile_List[index] {
-			fmt.Printf("Compare failure: line %d do not match\n", index)
-			return false
+			return fmt.Errorf("%s\nCompare failure: line %d do not match\n", fileDifference, index)
 		}
 	}
 
 	//If we reached this, we are all good
-	return true
+	return nil
 }
 
 // load input file
