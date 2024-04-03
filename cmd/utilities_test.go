@@ -607,7 +607,7 @@ func isFileEquivalent(tempFileName, goldenFileName string) error {
 	}
 
 	// We don't throw an error immediately to give a better hint where the files diverge
-	fileDifference := ""
+	fileDifference := fmt.Sprintf("Files have same sizes (%d bytes)", tempFileSize)
 	if tempFileSize != goldenFileSize {
 		fileDifference = fmt.Sprintf("Files are of different sizes: found %d bytes while expecting reference %d bytes \n", tempFileSize, goldenFileSize)
 	}
@@ -626,7 +626,7 @@ func isFileEquivalent(tempFileName, goldenFileName string) error {
 	//Compare the two lists
 	for index, line := range tempFile_List {
 		if line != goldenFile_List[index] {
-			return fmt.Errorf("%s\nCompare failure: line %d do not match\n", fileDifference, index)
+			return fmt.Errorf("%s\nCompare failure: line %d do not match\nGenerated file: [%s]\nGolden file: [%s]\n", fileDifference, index, line, goldenFile_List[index])
 		}
 	}
 
