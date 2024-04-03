@@ -138,7 +138,7 @@ func Test_ExecuteCommentersCompareToMarkdown_integrationTest(t *testing.T) {
 
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
 func Test_ExecuteSubmitterCompareToMarkdown_integrationTest(t *testing.T) {
@@ -161,7 +161,7 @@ func Test_ExecuteSubmitterCompareToMarkdown_integrationTest(t *testing.T) {
 
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
 func Test_ExecuteCompareWithUnknownInputType_mustFail(t *testing.T) {
@@ -279,9 +279,9 @@ func Test_ExecuteSubmitterCompareWithHistory_integrationTest(t *testing.T) {
 
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 	assert.FileExists(t, expectedHistoryFilename, "history file was not produced")
-	assert.True(t, isFileEquivalent(expectedHistoryFilename, goldenHistoryFilename))
+	assert.NoError(t, isFileEquivalent(expectedHistoryFilename, goldenHistoryFilename))
 }
 
 //TODO: validate CSV output

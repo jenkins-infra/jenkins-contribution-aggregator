@@ -217,7 +217,7 @@ func Test_ExecuteSubmittersExtractToMarkdown_integrationTest(t *testing.T) {
 
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
 func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
@@ -240,7 +240,7 @@ func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
 
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
-	assert.True(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
 }
 
 func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
