@@ -26,7 +26,7 @@ test-coverage: ## Run tests with coverage
 	@cat cover.out >> coverage.txt
 
 build:  ## Build the binary file
-	@goreleaser --snapshot --skip-publish --clean
+	@goreleaser --snapshot --skip=publish --clean
 	@cp dist/jenkins-top-submitters_darwin_amd64_v1/jenkins-top-submitters .
  
 clean: ## Remove previous build
