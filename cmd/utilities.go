@@ -290,6 +290,10 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 		// Add the collected data
 		historicDataSlice = append(historicDataSlice, pivotRecords[index])
 	}
+
+	//FIXME: figure out what the output directory is
+	//FIXME: generate graphics
+
 	//Write the CSV
 	writeCSVtoFile(historyOutputFilename, historicDataSlice)
 
