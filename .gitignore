@@ -29,5 +29,6 @@ top-submitter*.csv
 #Goreleaser output directory
 dist/
 
-#exclude temporary executables
+#exclude temporary executables or test files
 jenkins-top-submitters
+test.png

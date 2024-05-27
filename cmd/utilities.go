@@ -291,8 +291,24 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 		historicDataSlice = append(historicDataSlice, pivotRecords[index])
 	}
 
-	//FIXME: figure out what the output directory is
+	//figure out what the output directory is
+	historyBasePath := filepath.Dir(historyOutputFilename)
+	plotPath := filepath.Join(historyBasePath,"plot")
+
+	//Create it as it doesn't exist and plot doesn't like that.
+	err = os.MkdirAll(plotPath, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("Failed to create the plot directory: %v", err)
+	}
+
+	//FIXME: retrieve the type and pass it on
+
+
 	//FIXME: generate graphics
+	err = plotAllHistoryFiles(plotPath, historicDataSlice)
+	if err != nil {
+		return err
+	}
 
 	//Write the CSV
 	writeCSVtoFile(historyOutputFilename, historicDataSlice)

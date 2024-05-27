@@ -33,6 +33,24 @@ import (
 	"gonum.org/v1/plot/vg"
 )
 
+func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) error {
+
+	var header []string
+
+	for row, historyRow := range historicDataSlice {
+		if row == 0 {
+			header = historyRow[1:]
+		} else {
+			err := plot_bargraph(plotDirectory, historyRow[0],header, historyRow[1:])
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 // TODO: add type for legends
 // TODO: how is the data passed so that it can be formatted
 // TODO: add parameter to limit the size of the data displayed
@@ -69,7 +87,7 @@ func plot_bargraph(plotDirectory string, name string, xLabels []string, values [
 
 	p.NominalX(simplifiedLabels...)
 
-	return p.Save(5*vg.Inch, 3*vg.Inch, plotFileName)
+	return p.Save(10*vg.Inch, 6*vg.Inch, plotFileName)
 }
 
 // take the list of months and transforms this to a lighter list that can be displayed on the graph
