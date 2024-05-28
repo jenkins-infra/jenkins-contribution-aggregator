@@ -257,7 +257,17 @@ func Test_writeHistoryOutput(t *testing.T) {
 	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
 	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
 
-	// result validation
+	// *** result validation ***
+
+	//check existence of plot files
+	for i, data_row := range data {
+		if i != 0 {
+			outputedPng := filepath.Join(tempDir, "plot", data_row[0]+".png")
+			assert.FileExistsf(t, outputedPng, "did not find the expected plot %s\n", outputedPng)
+		}
+	}
+
+	// Check the output file
 	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
@@ -292,7 +302,17 @@ func Test_writeHistoryOutput_compare(t *testing.T) {
 	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
 	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
 
-	// result validation
+	// *** result validation ***
+
+	//check existence of plot files
+	for i, data_row := range data {
+		if i != 0 {
+			outputedPng := filepath.Join(tempDir, "plot", data_row[0]+".png")
+			assert.FileExistsf(t, outputedPng, "did not find the expected plot %s\n", outputedPng)
+		}
+	}
+	
+		// Check the output file
 	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 

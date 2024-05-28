@@ -41,7 +41,7 @@ func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) err
 		if row == 0 {
 			header = historyRow[1:]
 		} else {
-			err := plot_bargraph(plotDirectory, historyRow[0],header, historyRow[1:])
+			err := plot_bargraph(plotDirectory, historyRow[0], header, historyRow[1:])
 			if err != nil {
 				return err
 			}
@@ -56,15 +56,19 @@ func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) err
 // TODO: add parameter to limit the size of the data displayed
 // Plots the passed data in a png file named after the user in the specified directory
 func plot_bargraph(plotDirectory string, name string, xLabels []string, values []string) error {
-	plotFileName := path.Join(plotDirectory, name+".png")
+
 
 	//FIXME: type of graph (PR or Comments)
 
 	p := plot.New()
 
-	// x_legend := "2020-01,2020-02,2020-03,2020-04,2020-05,2020-06,2020-07,2020-08,2020-09,2020-10,2020-11,2020-12,2021-01,2021-02,2021-03,2021-04,2021-05,2021-06,2021-07,2021-08,2021-09,2021-10,2021-11,2021-12,2022-01,2022-02,2022-03,2022-04,2022-05,2022-06,2022-07,2022-08,2022-09,2022-10,2022-11,2022-12,2023-01,2023-02,2023-03,2023-04,2023-05,2023-06,2023-07,2023-08,2023-09,2023-10,2023-11,2023-12,2024-01,2024-02,2024-03,2024-04"
+	//In case of a compare, the name is appended with "new" or "churned". So we need to clean it up
+	name_element := strings.Split(name, " ")
+	cleanedName := name_element[0]
 
-	p.Title.Text = "Submissions by " + name
+	plotFileName := path.Join(plotDirectory, cleanedName+".png")
+
+	p.Title.Text = "Submissions by " + cleanedName
 	p.Y.Label.Text = "Count"
 
 	w := vg.Points(20)

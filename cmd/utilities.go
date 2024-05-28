@@ -293,7 +293,7 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 
 	//figure out what the output directory is
 	historyBasePath := filepath.Dir(historyOutputFilename)
-	plotPath := filepath.Join(historyBasePath,"plot")
+	plotPath := filepath.Join(historyBasePath, "plot")
 
 	//Create it as it doesn't exist and plot doesn't like that.
 	err = os.MkdirAll(plotPath, os.ModePerm)
@@ -302,7 +302,6 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 	}
 
 	//FIXME: retrieve the type and pass it on
-
 
 	//FIXME: generate graphics
 	err = plotAllHistoryFiles(plotPath, historicDataSlice)

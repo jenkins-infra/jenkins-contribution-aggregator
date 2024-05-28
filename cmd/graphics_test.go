@@ -49,8 +49,8 @@ func Test_plot_bargraph(t *testing.T) {
 	err := plot_bargraph(tempDir, "test", labels, values)
 	assert.NoError(t, err, "Function should not have failed")
 	outputPngFileName := filepath.Join(tempDir, "test.png")
-	assert.FileExists(t,outputPngFileName,"No graphic file generated")
-	fmt.Printf("To view the file generated: open %s\n",outputPngFileName)
+	assert.FileExists(t, outputPngFileName, "No graphic file generated")
+	fmt.Printf("To view the file generated: open %s\n", outputPngFileName)
 }
 
 func Test_generateAxisLabels(t *testing.T) {
@@ -112,7 +112,6 @@ func Test_convertValuesToFloats(t *testing.T) {
 			nil,
 			true,
 		},
-
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
