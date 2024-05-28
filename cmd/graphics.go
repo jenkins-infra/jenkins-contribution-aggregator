@@ -57,7 +57,6 @@ func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) err
 // Plots the passed data in a png file named after the user in the specified directory
 func plot_bargraph(plotDirectory string, name string, xLabels []string, values []string) error {
 
-
 	//FIXME: type of graph (PR or Comments)
 
 	p := plot.New()

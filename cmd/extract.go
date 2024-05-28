@@ -153,7 +153,7 @@ the list (resulting in more thant the specified number of top users).
 				buffer := fmt.Sprintf("\nExtraction of the %d top (non-bot) commenters \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
 				introduction = introduction + buffer
 			}
-			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction)
+			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction, isOutputHistory)
 		} else {
 			writeCSVtoFile(outputFileName, csv_output_slice)
 		}

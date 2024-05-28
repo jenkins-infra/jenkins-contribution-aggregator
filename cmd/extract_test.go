@@ -210,7 +210,7 @@ func Test_ExecuteSubmittersExtractToMarkdown_integrationTest(t *testing.T) {
 	actual := new(bytes.Buffer)
 	rootCmd.SetOut(actual)
 	rootCmd.SetErr(actual)
-	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--type=submitters", "--out=" + testOutputFilename})
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--type=submitters", "--history" ,"--out=" + testOutputFilename})
 
 	// Execute the module under test
 	error := rootCmd.Execute()

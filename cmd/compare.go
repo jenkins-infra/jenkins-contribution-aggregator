@@ -130,7 +130,7 @@ compare it with an extraction with the same settings but with an X amount of mon
 				buffer = buffer + fmt.Sprintf("Table shows new and \"churned\" commenters compared \nto the situation %d months before.\n\n", compareWith)
 				introduction = introduction + buffer
 			}
-			writeDataAsMarkdown(outputFileName, enrichedExtractedData, introduction)
+			writeDataAsMarkdown(outputFileName, enrichedExtractedData, introduction, isOutputHistory)
 		} else {
 			writeCSVtoFile(outputFileName, enrichedExtractedData)
 		}

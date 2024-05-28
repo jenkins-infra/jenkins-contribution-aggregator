@@ -98,7 +98,7 @@ func isWithMDfileExtension(filename string) bool {
 // TODO: externalize the header creation
 // TODO: return error
 // Writes the data as Markdown
-func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, introductionText string) {
+func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, introductionText string, isHistory bool) {
 	//Open output file
 	f, err := os.Create(outputFileName)
 	if err != nil {
@@ -149,7 +149,18 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, in
 				underlineBuffer = underlineBuffer + " " + headerUnderline + " |"
 			}
 
-			formattedData := fmt.Sprintf(" %*s", exact_width, data)
+			// isHistory means that the history (and plots) is generated along the MD.
+			//This means that we need to create a link to the plots
+			formattedData := ""
+			if isHistory && (columnNbr == 0) && (lineNumber != 0){
+				//data contains the user name (eventually enriched)
+				name_element := strings.Split(data, " ")
+				cleanedName := name_element[0]
+			
+				formattedData = fmt.Sprintf(" [%s](plot/%s.png)", data, cleanedName)
+			} else {
+				formattedData = fmt.Sprintf(" %*s", exact_width, data)
+			}
 			writeBuffer = writeBuffer + formattedData + " |"
 		}
 		if isHeaderUnderline {
@@ -303,7 +314,7 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 
 	//FIXME: retrieve the type and pass it on
 
-	//FIXME: generate graphics
+	//generate graphics
 	err = plotAllHistoryFiles(plotPath, historicDataSlice)
 	if err != nil {
 		return err
