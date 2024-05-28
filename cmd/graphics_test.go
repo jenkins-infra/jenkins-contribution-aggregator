@@ -46,7 +46,7 @@ func Test_plot_bargraph(t *testing.T) {
 		"147", "54", "43", "65", "59", "126", "136", "171", "85", "113", "81", "143",
 		"76", "22", "44", "31"}
 
-	err := plot_bargraph(tempDir, "test", labels, values)
+	err := plot_bargraph(tempDir, "test", InputTypeSubmitters, labels, values)
 	assert.NoError(t, err, "Function should not have failed")
 	outputPngFileName := filepath.Join(tempDir, "test.png")
 	assert.FileExists(t, outputPngFileName, "No graphic file generated")

@@ -33,7 +33,7 @@ import (
 	"gonum.org/v1/plot/vg"
 )
 
-func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) error {
+func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string, dataType InputType) error {
 
 	var header []string
 
@@ -41,7 +41,7 @@ func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) err
 		if row == 0 {
 			header = historyRow[1:]
 		} else {
-			err := plot_bargraph(plotDirectory, historyRow[0], header, historyRow[1:])
+			err := plot_bargraph(plotDirectory, historyRow[0], dataType, header, historyRow[1:])
 			if err != nil {
 				return err
 			}
@@ -55,9 +55,7 @@ func plotAllHistoryFiles(plotDirectory string, historicDataSlice [][]string) err
 // TODO: how is the data passed so that it can be formatted
 // TODO: add parameter to limit the size of the data displayed
 // Plots the passed data in a png file named after the user in the specified directory
-func plot_bargraph(plotDirectory string, name string, xLabels []string, values []string) error {
-
-	//FIXME: type of graph (PR or Comments)
+func plot_bargraph(plotDirectory string, name string, dataType InputType, xLabels []string, values []string) error {
 
 	p := plot.New()
 
@@ -67,7 +65,11 @@ func plot_bargraph(plotDirectory string, name string, xLabels []string, values [
 
 	plotFileName := path.Join(plotDirectory, cleanedName+".png")
 
+	if dataType == InputTypeCommenters {
+		p.Title.Text = "Comments by " + cleanedName
+	} else {
 	p.Title.Text = "Submissions by " + cleanedName
+	}
 	p.Y.Label.Text = "Count"
 
 	w := vg.Points(20)

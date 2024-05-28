@@ -153,7 +153,7 @@ the list (resulting in more thant the specified number of top users).
 				buffer := fmt.Sprintf("\nExtraction of the %d top (non-bot) commenters \nover the %d months before \"%s\".\n\n", topSize, period, real_endDate)
 				introduction = introduction + buffer
 			}
-			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction, isOutputHistory)
+			writeDataAsMarkdown(outputFileName, csv_output_slice, introduction, isOutputHistory, inputType)
 		} else {
 			writeCSVtoFile(outputFileName, csv_output_slice)
 		}
@@ -163,7 +163,7 @@ the list (resulting in more thant the specified number of top users).
 			isCompare := false
 			historyOutputFilename := generateHistoryFilename(outputFileName, inputType, isCompare)
 
-			if err := writeHistoryOutput(historyOutputFilename, inputPivotTableName, csv_output_slice); err != nil {
+			if err := writeHistoryOutput(historyOutputFilename, inputPivotTableName, inputType, csv_output_slice); err != nil {
 				return err
 			}
 		}

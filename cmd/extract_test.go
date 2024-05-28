@@ -233,7 +233,7 @@ func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
 	actual := new(bytes.Buffer)
 	rootCmd.SetOut(actual)
 	rootCmd.SetErr(actual)
-	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--type=commenters", "--out=" + testOutputFilename})
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--history=false", "--type=commenters", "--out=" + testOutputFilename})
 
 	// Execute the module under test
 	error := rootCmd.Execute()
@@ -241,6 +241,30 @@ func Test_ExecuteCommentersExtractToMarkdown_integrationTest(t *testing.T) {
 	// Check the results
 	assert.NoError(t, error, "Unexpected failure")
 	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
+func Test_ExecuteCommentersExtractToMarkdownWithHistory_integrationTest(t *testing.T) {
+	// Setup test environment
+	tempDir := t.TempDir()
+	testOutputFilename := tempDir + "extract_markdown_output.md"
+	goldenMarkdownFilename, err := duplicateFile("../test_data/extract-commenters-history_reference_output.md", tempDir)
+
+	assert.NoError(t, err, "Unexpected Golden File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
+
+	// setup the command line
+	actual := new(bytes.Buffer)
+	rootCmd.SetOut(actual)
+	rootCmd.SetErr(actual)
+	rootCmd.SetArgs([]string{"extract", "../test_data/overview.csv", "--month=latest", "--period=12", "--topSize=35", "--history=true", "--type=commenters", "--out=" + testOutputFilename})
+
+	// Execute the module under test
+	error := rootCmd.Execute()
+
+	// Check the results
+	assert.NoError(t, error, "Unexpected failure")
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+	//FIXME: check if a history file has been generated
 }
 
 func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
@@ -260,6 +284,8 @@ func Test_ExecuteExtractWithUnknownInputType_mustFail(t *testing.T) {
 	lines := strings.Split(actual.String(), "\n")
 	assert.Equal(t, expectedMsg, lines[0], "Function did not fail for the expected cause")
 }
+
+
 
 func Test_ExecuteExtractWithInvalidOutputDir_mustFail(t *testing.T) {
 	// setup the command line
