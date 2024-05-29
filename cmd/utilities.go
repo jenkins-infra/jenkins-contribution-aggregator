@@ -120,7 +120,8 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, in
 	// set the plot directory name based on the data type (submitters or commenters)
 	plot_dir := ""
 	if inputType == InputTypeCommenters {
-		plot_dir = "commenterPlot"
+		//FIXME: should be a global constant (used in the graph generation and in MD generation)
+		plot_dir = "commentersPlot"
 	} else {
 		plot_dir = "plot"
 	}
