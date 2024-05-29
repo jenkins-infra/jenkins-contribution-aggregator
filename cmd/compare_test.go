@@ -260,7 +260,7 @@ func Test_ExecuteSubmitterCompareWithHistory_integrationTest(t *testing.T) {
 	testOutputFilename := tempDir + "/extract_markdown_output.md"
 	expectedHistoryFilename := tempDir + "/top_submitters_evolution_fullHistory.csv"
 
-	goldenMarkdownFilename, err := duplicateFile("../test_data/compare-submitters_reference_output.md", tempDir)
+	goldenMarkdownFilename, err := duplicateFile("../test_data/compare-submitters_history_reference_output.md", tempDir)
 	assert.NoError(t, err, "Unexpected Golden File duplication error")
 	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate Golden File")
 

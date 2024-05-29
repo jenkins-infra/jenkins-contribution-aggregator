@@ -98,7 +98,7 @@ func isWithMDfileExtension(filename string) bool {
 // TODO: externalize the header creation
 // TODO: return error
 // Writes the data as Markdown
-func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, introductionText string) {
+func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, introductionText string, isHistory bool, inputType InputType, ) {
 	//Open output file
 	f, err := os.Create(outputFileName)
 	if err != nil {
@@ -115,6 +115,15 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, in
 	//Write the intro text if present
 	if len(introductionText) > 0 {
 		fmt.Fprintf(out, "%s\n", introductionText)
+	}
+
+	// set the plot directory name based on the data type (submitters or commenters)
+	plot_dir := ""
+	if inputType == InputTypeCommenters {
+		//FIXME: should be a global constant (used in the graph generation and in MD generation)
+		plot_dir = "commentersPlot"
+	} else {
+		plot_dir = "plot"
 	}
 
 	for lineNumber, dataLine := range output_data_slice {
@@ -149,7 +158,18 @@ func writeDataAsMarkdown(outputFileName string, output_data_slice [][]string, in
 				underlineBuffer = underlineBuffer + " " + headerUnderline + " |"
 			}
 
-			formattedData := fmt.Sprintf(" %*s", exact_width, data)
+			// isHistory means that the history (and plots) is generated along the MD.
+			//This means that we need to create a link to the plots
+			formattedData := ""
+			if isHistory && (columnNbr == 0) && (lineNumber != 0){
+				//data contains the user name (eventually enriched)
+				name_element := strings.Split(data, " ")
+				cleanedName := name_element[0]
+			
+				formattedData = fmt.Sprintf(" [%s](%s/%s.png)", data, plot_dir,cleanedName)
+			} else {
+				formattedData = fmt.Sprintf(" %*s", exact_width, data)
+			}
 			writeBuffer = writeBuffer + formattedData + " |"
 		}
 		if isHeaderUnderline {
@@ -224,7 +244,7 @@ func generateHistoryFilename(outputFilename string, dataType InputType, isCompar
 }
 
 // Will retrieve and write the history line for all the top users
-func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_output_slice [][]string) (err error) {
+func writeHistoryOutput(historyOutputFilename string, inputFilename string, dataType InputType, csv_output_slice [][]string) (err error) {
 
 	// Check is the csv_output_slice is at least 1 record + tile long
 	if len(csv_output_slice) <= 2 {
@@ -290,6 +310,29 @@ func writeHistoryOutput(historyOutputFilename string, inputFilename string, csv_
 		// Add the collected data
 		historicDataSlice = append(historicDataSlice, pivotRecords[index])
 	}
+
+	//figure out what the output directory is
+	historyBasePath := filepath.Dir(historyOutputFilename)
+	plotPath := ""
+	if dataType == InputTypeCommenters {
+		plotPath = filepath.Join(historyBasePath, "commentersPlot")
+	} else {
+		plotPath = filepath.Join(historyBasePath, "plot")
+	}
+	
+
+	//Create it as it doesn't exist and plot doesn't like that.
+	err = os.MkdirAll(plotPath, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("Failed to create the plot directory: %v", err)
+	}
+
+	//generate graphics
+	err = plotAllHistoryFiles(plotPath, historicDataSlice, dataType)
+	if err != nil {
+		return err
+	}
+
 	//Write the CSV
 	writeCSVtoFile(historyOutputFilename, historicDataSlice)
 

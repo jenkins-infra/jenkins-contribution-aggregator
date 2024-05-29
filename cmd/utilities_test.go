@@ -220,7 +220,43 @@ func Test_writeMarkdownFile(t *testing.T) {
 		{"daniel-beck", "164"}}
 
 	// Execute function under test
-	writeDataAsMarkdown(testOutputFilename, data, introductionText)
+	isHistory := false
+	writeDataAsMarkdown(testOutputFilename, data, introductionText, isHistory, InputTypeSubmitters)
+
+	// result validation
+	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
+}
+
+func Test_writeMarkdownFile_withLinks(t *testing.T) {
+	// Setup environment
+	tempDir := t.TempDir()
+	goldenMarkdownFilename, err := duplicateFile("../test_data/Reference_extract_output_with_links.md", tempDir)
+
+	assert.NoError(t, err, "Unexpected File duplication error")
+	assert.NotEmpty(t, goldenMarkdownFilename, "Failure to duplicate test file")
+
+	// Setup input data
+	testOutputFilename := tempDir + "markdown_output.md"
+	introductionText := "# Extract\n"
+	data := [][]string{
+		{"Submitter", "Total_PRs"},
+		{"basil", "1245"},
+		{"MarkEWaite", "1150"},
+		{"lemeurherve", "939"},
+		{"NotMyFault", "926"},
+		{"dduportal", "859"},
+		{"jonesbusy", "415"},
+		{"jglick", "378"},
+		{"smerle33", "353"},
+		{"timja", "250"},
+		{"uhafner", "215"},
+		{"gounthar", "208"},
+		{"mawinter69", "179"},
+		{"daniel-beck", "164"}}
+
+	// Execute function under test
+	isHistory := true
+	writeDataAsMarkdown(testOutputFilename, data, introductionText, isHistory, InputTypeSubmitters)
 
 	// result validation
 	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenMarkdownFilename))
@@ -254,10 +290,20 @@ func Test_writeHistoryOutput(t *testing.T) {
 		{"daniel-beck", "164"}}
 
 	// Execute function under test
-	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, InputTypeSubmitters, data)
 	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
 
-	// result validation
+	// *** result validation ***
+
+	//check existence of plot files
+	for i, data_row := range data {
+		if i != 0 {
+			outputedPng := filepath.Join(tempDir, "plot", data_row[0]+".png")
+			assert.FileExistsf(t, outputedPng, "did not find the expected plot %s\n", outputedPng)
+		}
+	}
+
+	// Check the output file
 	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
@@ -289,10 +335,20 @@ func Test_writeHistoryOutput_compare(t *testing.T) {
 		{"daniel-beck", "164", ""}}
 
 	// Execute function under test
-	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, InputTypeSubmitters, data)
 	assert.NoError(t, writeErr, "Function under test returned an unexpected error")
 
-	// result validation
+	// *** result validation ***
+
+	//check existence of plot files
+	for i, data_row := range data {
+		if i != 0 {
+			outputedPng := filepath.Join(tempDir, "plot", data_row[0]+".png")
+			assert.FileExistsf(t, outputedPng, "did not find the expected plot %s\n", outputedPng)
+		}
+	}
+
+	// Check the output file
 	assert.NoError(t, isFileEquivalent(testOutputFilename, goldenHistoryFilename))
 }
 
@@ -320,7 +376,7 @@ func Test_writeHistoryOutput_notFoundUser(t *testing.T) {
 		{"daniel-beck", "164"}}
 
 	// Execute function under test
-	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, InputTypeSubmitters, data)
 
 	assert.EqualErrorf(t, writeErr, "Supplied name (unknownUser) was not found in input pivot table file", "Function under test should have failed")
 
@@ -338,7 +394,7 @@ func Test_writeHistoryOutput_noTopUserData(t *testing.T) {
 	}
 
 	// Execute function under test
-	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, InputTypeSubmitters, data)
 
 	assert.EqualErrorf(t, writeErr, "The generated top user data seems empty.", "Function under test should have failed")
 }
@@ -367,7 +423,7 @@ func Test_writeHistoryOutput_noPivotTableData(t *testing.T) {
 		{"daniel-beck", "164"}}
 
 	// Execute function under test
-	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, InputTypeSubmitters, data)
 
 	assert.EqualErrorf(t, writeErr, "The pivot table (../test_data/noData_overview.csv) seems empty.", "Function under test should have failed")
 }
@@ -396,7 +452,7 @@ func Test_writeHistoryOutput_compareWithWrongHeader(t *testing.T) {
 		{"daniel-beck", "164", ""}}
 
 	// Execute function under test
-	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, data)
+	writeErr := writeHistoryOutput(testOutputFilename, inputPivotTableName, InputTypeSubmitters, data)
 
 	expectedErrorMessage := "COMPARE output check failure: found three columns but third one doesn't have the expected title (found \"junkHeader\" instead of \"status\")"
 	assert.EqualErrorf(t, writeErr, expectedErrorMessage, "Function under test should have failed")
