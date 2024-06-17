@@ -24,8 +24,9 @@ THE SOFTWARE.
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -50,9 +51,9 @@ var (
 						prettyPrintedDate = fmt.Sprint(error)
 					}
 				}
-				response = fmt.Sprintf("jenkins-top-submitters :\n- version:  %s\n- commit:   %s\n- date:     %s\n- built by: %s\n", version, commit, prettyPrintedDate, builtBy)
+				response = fmt.Sprintf("jenkins-contribution-aggregator :\n- version:  %s\n- commit:   %s\n- date:     %s\n- built by: %s\n", version, commit, prettyPrintedDate, builtBy)
 			} else {
-				response = fmt.Sprintf("jenkins-top-submitters version: %s\n", version)
+				response = fmt.Sprintf("jenkins-contribution-aggregator version: %s\n", version)
 			}
 
 			fmt.Printf("%+v", response)

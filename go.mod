@@ -1,4 +1,4 @@
-module github.com/jmMeessen/jenkins-top-submitters
+module github.com/jenkins-infra/jenkins-contribution-aggregator
 
 go 1.20
 
