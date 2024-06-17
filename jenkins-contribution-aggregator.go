@@ -21,7 +21,7 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/jmMeessen/jenkins-top-submitters/cmd"
+import "github.com/jenkins-infra/jenkins-contribution-aggregator/cmd"
 
 func main() {
 	cmd.Execute()
