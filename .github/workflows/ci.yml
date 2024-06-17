@@ -71,5 +71,5 @@ jobs:
       uses: goreleaser/goreleaser-action@v4
       with:
         distribution: goreleaser      
-        args: release --snapshot --skip-publish --clean
+        args: release --snapshot --skip=publish --clean
 
