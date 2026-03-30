@@ -1,6 +1,6 @@
 module github.com/jenkins-infra/jenkins-contribution-aggregator
 
-go 1.20
+go 1.25.0
 
 require (
 	github.com/spf13/cobra v1.7.0
@@ -15,8 +15,8 @@ require (
 	github.com/go-latex/latex v0.0.0-20230307184459-12ec69307ad9 // indirect
 	github.com/go-pdf/fpdf v0.8.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	golang.org/x/image v0.18.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/image v0.38.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 )
 
 require (
